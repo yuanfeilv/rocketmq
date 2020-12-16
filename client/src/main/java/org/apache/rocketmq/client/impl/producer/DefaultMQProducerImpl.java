@@ -174,7 +174,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
     public void start() throws MQClientException {
         this.start(true);
     }
-    //K2 Producer启动方法
+    //todo K2 Producer启动方法
     public void start(final boolean startFactory) throws MQClientException {
         switch (this.serviceState) {
             case CREATE_JUST:
@@ -541,7 +541,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         }
 
     }
-    //K1 Producer发送消息的实现类
+    //todo K1 Producer发送消息的实现类
     private SendResult sendDefaultImpl(
         Message msg,
         final CommunicationMode communicationMode,
@@ -566,7 +566,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             String[] brokersSent = new String[timesTotal];
             for (; times < timesTotal; times++) {
                 String lastBrokerName = null == mq ? null : mq.getBrokerName();
-                //K2 Producer计算把消息发到哪个MessageQueue中。
+                //todo K2 Producer计算把消息发到哪个MessageQueue中。
                 MessageQueue mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName);
                 if (mqSelected != null) {
                     mq = mqSelected;

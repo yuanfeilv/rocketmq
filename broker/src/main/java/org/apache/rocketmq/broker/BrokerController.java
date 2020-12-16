@@ -108,7 +108,7 @@ import org.apache.rocketmq.store.stats.BrokerStats;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
 /**
- * K1 Broker的核心管理控制组件。是理解Broker的核心
+ * todo K1 Broker的核心管理控制组件。是理解Broker的核心
  * 一大堆的配置大概可以分为 核心功能组件 和  后台线程池  两个部分。
  */
 public class BrokerController {
@@ -183,7 +183,7 @@ public class BrokerController {
         this.nettyServerConfig = nettyServerConfig;
         this.nettyClientConfig = nettyClientConfig;
         this.messageStoreConfig = messageStoreConfig;
-        //K2 Broker的各种功能对应的组件。
+        //todo K2 Broker的各种功能对应的组件。
         //管理consumer消费offset
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
         //管理Topic配置
@@ -240,7 +240,7 @@ public class BrokerController {
     public BlockingQueue<Runnable> getQueryThreadPoolQueue() {
         return queryThreadPoolQueue;
     }
-    //K1 Broker初始化过程
+    //todo K1 Broker初始化过程
     public boolean initialize() throws CloneNotSupportedException {
         //加载磁盘上的配置信息。这些配置信息就用到了MessageStoreConfig
         boolean result = this.topicConfigManager.load();
@@ -273,7 +273,7 @@ public class BrokerController {
         }
 
         result = result && this.messageStore.load();
-        //K2 Broker的Netty组件。注意，Broker需要既是服务端(接收Producer和Consumer的请求)，又是客户端(要往NameServer和Producer发送请求)。
+        //todo K2 Broker的Netty组件。注意，Broker需要既是服务端(接收Producer和Consumer的请求)，又是客户端(要往NameServer和Producer发送请求)。
         if (result) {
             //Netty网络组件
             this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.clientHousekeepingService);
@@ -872,7 +872,7 @@ public class BrokerController {
         if (this.messageStore != null) {
             this.messageStore.start();
         }
-        //K2 Broker中启动了两个Netty服务，这样就可以接收请求了。
+        //todo K2 Broker中启动了两个Netty服务，这样就可以接收请求了。
         if (this.remotingServer != null) {
             this.remotingServer.start();
         }
@@ -884,7 +884,7 @@ public class BrokerController {
         if (this.fileWatchService != null) {
             this.fileWatchService.start();
         }
-        //K2 Broker的brokerOuterAPI可以理解为一个Netty客户端。往外发送请求的，例如心跳。
+        //todo K2 Broker的brokerOuterAPI可以理解为一个Netty客户端。往外发送请求的，例如心跳。
         if (this.brokerOuterAPI != null) {
             this.brokerOuterAPI.start();
         }
@@ -906,7 +906,7 @@ public class BrokerController {
             handleSlaveSynchronize(messageStoreConfig.getBrokerRole());
             this.registerBrokerAll(true, false, true);
         }
-        //K2 Broker核心的心跳注册任务。需要深入解读下。
+        //todo K2 Broker核心的心跳注册任务。需要深入解读下。
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -973,7 +973,7 @@ public class BrokerController {
             doRegisterBrokerAll(checkOrderConfig, oneway, topicConfigWrapper);
         }
     }
-    //K2 roker注册最核心的部分
+    //todo K2 roker注册最核心的部分
     private void doRegisterBrokerAll(boolean checkOrderConfig, boolean oneway,
         TopicConfigSerializeWrapper topicConfigWrapper) {
         //为什么返回的是个List？这就是因为Broker是向所有的NameServer进行注册。

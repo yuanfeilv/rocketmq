@@ -60,7 +60,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
  * <strong>Thread Safety:</strong> After initialization, the instance can be regarded as thread-safe.
  * </p>
  */
-//K1 推模式的主要客户端
+//todo K1 推模式的主要客户端
 public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsumer {
 
     private final InternalLogger log = ClientLogger.getLog();
@@ -706,7 +706,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      *
      * @throws MQClientException if there is any client error.
      */
-    //K2 启动过程
+    //todo K2 启动过程
     @Override
     public void start() throws MQClientException {
         setConsumerGroup(NamespaceUtil.wrapNamespace(this.getNamespace(), this.consumerGroup));

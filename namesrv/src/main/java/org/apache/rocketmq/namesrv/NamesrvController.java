@@ -39,7 +39,7 @@ import org.apache.rocketmq.remoting.netty.TlsSystemConfig;
 import org.apache.rocketmq.srvutil.FileWatchService;
 
 /**
- * K1 NameServer的核心管理控制组件。是理解整个NameServer的核心。
+ * todo K1 NameServer的核心管理控制组件。是理解整个NameServer的核心。
  */
 public class NamesrvController {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
@@ -74,7 +74,7 @@ public class NamesrvController {
         );
         this.configuration.setStorePathFromConfig(this.namesrvConfig, "configStorePath");
     }
-    //K1 NameController初始化
+    //todo K1 NameController初始化
     public boolean initialize() {
         //加载KV配置
         this.kvConfigManager.load();

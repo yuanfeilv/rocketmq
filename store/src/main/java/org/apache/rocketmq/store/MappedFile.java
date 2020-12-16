@@ -42,7 +42,7 @@ import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
 /**
- * K2 这个MappedFile就对应一个CommitLog文件。
+ * todo K2 这个MappedFile就对应一个CommitLog文件。
  */
 public class MappedFile extends ReferenceResource {
     //每一个文件的大小
@@ -212,7 +212,7 @@ public class MappedFile extends ReferenceResource {
     public AppendMessageResult appendMessages(final MessageExtBatch messageExtBatch, final AppendMessageCallback cb) {
         return appendMessagesInner(messageExtBatch, cb);
     }
-    //K2 追加CommitLog文件
+    //todo K2 追加CommitLog文件
     public AppendMessageResult appendMessagesInner(final MessageExt messageExt, final AppendMessageCallback cb) {
         assert messageExt != null;
         assert cb != null;
@@ -293,7 +293,7 @@ public class MappedFile extends ReferenceResource {
                 try {
                     //We only append data to fileChannel or mappedByteBuffer, never both.
                     //这个force方法就是强迫把你写入内存的数据刷入到磁盘文件里去。
-                    //K2 到这里就是同步刷盘成功了。
+                    //todo K2 到这里就是同步刷盘成功了。
                     if (writeBuffer != null || this.fileChannel.position() != 0) {
                         this.fileChannel.force(false);
                     } else {

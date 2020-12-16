@@ -222,7 +222,7 @@ public class MQClientInstance {
 
         return mqList;
     }
-    //K1 消费者核心启动过程。难得有点注释了。
+    //todo K1 消费者核心启动过程。难得有点注释了。
     public void start() throws MQClientException {
 
         synchronized (this) {
@@ -240,7 +240,7 @@ public class MQClientInstance {
                     // Start pull service
                     this.pullMessageService.start();
                     // Start rebalance service
-                    //K2 客户端负载均衡
+                    //todo K2 客户端负载均衡
                     this.rebalanceService.start();
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
@@ -970,7 +970,7 @@ public class MQClientInstance {
     public void rebalanceImmediately() {
         this.rebalanceService.wakeup();
     }
-    //K2 客户端负载均衡 针对当前消费者所属的每一个消费者组
+    //todo K2 客户端负载均衡 针对当前消费者所属的每一个消费者组
     public void doRebalance() {
         for (Map.Entry<String, MQConsumerInner> entry : this.consumerTable.entrySet()) {
             MQConsumerInner impl = entry.getValue();

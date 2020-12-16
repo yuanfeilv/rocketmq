@@ -62,12 +62,12 @@ import org.apache.rocketmq.store.index.IndexService;
 import org.apache.rocketmq.store.index.QueryOffsetResult;
 import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
-//K1 Broker进行消息存储的核心功能组件
+//todo K1 Broker进行消息存储的核心功能组件
 public class DefaultMessageStore implements MessageStore {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     //消息配置属性
     private final MessageStoreConfig messageStoreConfig;
-    //K2 CommitLog
+    //todo K2 CommitLog
     private final CommitLog commitLog;
     //消息队列存储缓存
     private final ConcurrentMap<String/* topic */, ConcurrentMap<Integer/* queueId */, ConsumeQueue>> consumeQueueTable;
@@ -181,7 +181,7 @@ public class DefaultMessageStore implements MessageStore {
     /**
      * @throws IOException
      */
-    //K1 Broker文件恢复的入口
+    //todo K1 Broker文件恢复的入口
     public boolean load() {
         boolean result = true;
 
@@ -189,7 +189,7 @@ public class DefaultMessageStore implements MessageStore {
             //根据abort临时文件判断服务是否正常关闭。
             boolean lastExitOK = !this.isTempFileExist();
             log.info("last shutdown {}", lastExitOK ? "normally" : "abnormally");
-            //K1 延迟消息：延迟消息处理服务加载。
+            //todo K1 延迟消息：延迟消息处理服务加载。
             if (null != scheduleMessageService) {
                 result = result && this.scheduleMessageService.load();
             }
@@ -266,7 +266,7 @@ public class DefaultMessageStore implements MessageStore {
             }
             log.info("[SetReputOffset] maxPhysicalPosInLogicQueue={} clMinOffset={} clMaxOffset={} clConfirmedOffset={}",
                 maxPhysicalPosInLogicQueue, this.commitLog.getMinOffset(), this.commitLog.getMaxOffset(), this.commitLog.getConfirmOffset());
-            //K2 Broker启动时会启动一个线程来更新ConsumerQueue索引文件。
+            //todo K2 Broker启动时会启动一个线程来更新ConsumerQueue索引文件。
             this.reputMessageService.setReputFromOffset(maxPhysicalPosInLogicQueue);
             this.reputMessageService.start();
 
@@ -294,7 +294,7 @@ public class DefaultMessageStore implements MessageStore {
         this.storeStatsService.start();
 
         this.createTempFile();
-        //K2 Broker启动删除过期文件的定时任务
+        //todo K2 Broker启动删除过期文件的定时任务
         this.addScheduleTask();
         this.shutdown = false;
     }
@@ -479,7 +479,7 @@ public class DefaultMessageStore implements MessageStore {
 
         return resultFuture;
     }
-    //K2 Broker典型的存储消息的地方
+    //todo K2 Broker典型的存储消息的地方
     @Override
     public PutMessageResult putMessage(MessageExtBrokerInner msg) {
         PutMessageStatus checkStoreStatus = this.checkStoreStatus();
@@ -1299,7 +1299,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     private void addScheduleTask() {
-        //K1 定时删除过期消息的任务
+        //todo K1 定时删除过期消息的任务
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -1502,7 +1502,7 @@ public class DefaultMessageStore implements MessageStore {
     public RunningFlags getRunningFlags() {
         return runningFlags;
     }
-    //K2 将commitLog写入的事件转发到ComsumeQueue和IndexFile
+    //todo K2 将commitLog写入的事件转发到ComsumeQueue和IndexFile
     public void doDispatch(DispatchRequest req) {
         for (CommitLogDispatcher dispatcher : this.dispatcherList) {
             dispatcher.dispatch(req);
@@ -1562,7 +1562,7 @@ public class DefaultMessageStore implements MessageStore {
             }
         }, 6, TimeUnit.SECONDS);
     }
-    //K1 Consumequeue文件分发的构建器
+    //todo K1 Consumequeue文件分发的构建器
     class CommitLogDispatcherBuildConsumeQueue implements CommitLogDispatcher {
 
         @Override
@@ -1579,7 +1579,7 @@ public class DefaultMessageStore implements MessageStore {
             }
         }
     }
-    //K1 IndexFile文件分发的构建器
+    //todo K1 IndexFile文件分发的构建器
     class CommitLogDispatcherBuildIndex implements CommitLogDispatcher {
 
         @Override
@@ -1608,7 +1608,7 @@ public class DefaultMessageStore implements MessageStore {
             this.manualDeleteFileSeveralTimes = MAX_MANUAL_DELETE_FILE_TIMES;
             DefaultMessageStore.log.info("executeDeleteFilesManually was invoked");
         }
-        //K2 定期删除CommitLog文件的地方
+        //todo K2 定期删除CommitLog文件的地方
         public void run() {
             try {
                 this.deleteExpiredFiles();
@@ -1624,7 +1624,7 @@ public class DefaultMessageStore implements MessageStore {
             long fileReservedTime = DefaultMessageStore.this.getMessageStoreConfig().getFileReservedTime();
             int deletePhysicFilesInterval = DefaultMessageStore.this.getMessageStoreConfig().getDeleteCommitLogFilesInterval();
             int destroyMapedFileIntervalForcibly = DefaultMessageStore.this.getMessageStoreConfig().getDestroyMapedFileIntervalForcibly();
-            //K2 Broker触发文件删除的三个条件
+            //todo K2 Broker触发文件删除的三个条件
             //1、根据DeleteWhen判断
             boolean timeup = this.isTimeToDelete();
             //2、根据磁盘空间判断
@@ -1950,7 +1950,7 @@ public class DefaultMessageStore implements MessageStore {
                                 if (size > 0) {
                                     //分发CommitLog写入消息
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
-                                    //K2 长轮询： 如果有消息到了主节点，并且开启了长轮询。
+                                    //todo K2 长轮询： 如果有消息到了主节点，并且开启了长轮询。
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
                                         && DefaultMessageStore.this.brokerConfig.isLongPollingEnable()) {
                                         //唤醒NotifyMessageArrivingListener的arriving方法，进行一次请求线程的检查
@@ -1999,7 +1999,7 @@ public class DefaultMessageStore implements MessageStore {
                 }
             }
         }
-        //K2 每隔1毫秒，会往ConsumeQueue和IndexFile中转发一次CommitLog写入的消息。
+        //todo K2 每隔1毫秒，会往ConsumeQueue和IndexFile中转发一次CommitLog写入的消息。
         @Override
         public void run() {
             DefaultMessageStore.log.info(this.getServiceName() + " service started");

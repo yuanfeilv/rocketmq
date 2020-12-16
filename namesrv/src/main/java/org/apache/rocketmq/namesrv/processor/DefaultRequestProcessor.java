@@ -78,7 +78,7 @@ public class DefaultRequestProcessor extends AsyncNettyRequestProcessor implemen
                 request);
         }
 
-        //K2 这里是NameServer处理请求的核心代码。根据请求类型有不同的处理过程
+        //todo K2 这里是NameServer处理请求的核心代码。根据请求类型有不同的处理过程
         switch (request.getCode()) {
             case RequestCode.PUT_KV_CONFIG:
                 return this.putKVConfig(ctx, request);
@@ -276,7 +276,7 @@ public class DefaultRequestProcessor extends AsyncNettyRequestProcessor implemen
         responseHeader.setChanged(changed);
         return response;
     }
-    //K2 NameServer实际注册Broker的地方
+    //todo K2 NameServer实际注册Broker的地方
     public RemotingCommand registerBroker(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);

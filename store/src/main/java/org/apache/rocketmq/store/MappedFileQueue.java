@@ -30,7 +30,7 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
 /**
- * K2 这个MappedFileQueue对应CommitLog目录下的文件
+ * todo K2 这个MappedFileQueue对应CommitLog目录下的文件
  */
 public class MappedFileQueue {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);

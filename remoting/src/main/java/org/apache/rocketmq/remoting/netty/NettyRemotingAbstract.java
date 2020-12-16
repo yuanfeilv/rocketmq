@@ -413,7 +413,7 @@ public abstract class NettyRemotingAbstract {
             final ResponseFuture responseFuture = new ResponseFuture(channel, opaque, timeoutMillis, null, null);
             this.responseTable.put(opaque, responseFuture);
             final SocketAddress addr = channel.remoteAddress();
-            //K2 Broker发送心跳请求的核心。
+            //todo K2 Broker发送心跳请求的核心。
             //基于Netty开发的核心就是基于channel把请求写出去
             channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
                 @Override

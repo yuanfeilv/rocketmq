@@ -48,13 +48,13 @@ public class NamesrvStartup {
     private static Properties properties = null;
     private static CommandLine commandLine = null;
 
-    //K2 看启动方法时，注意要综合下启动脚本中的JVM参数配置。
+    //todo K2 看启动方法时，注意要综合下启动脚本中的JVM参数配置。
     public static void main(String[] args) {
         main0(args);
     }
 
     public static NamesrvController main0(String[] args) {
-        //K2 NameServer启动的核心组件，NamesrvController
+        //todo K2 NameServer启动的核心组件，NamesrvController
         //类似于Web应用里的Controller，这个组件就是用来接收网络请求的。那NameServer到底要接收哪些网络请求？
         try {
             NamesrvController controller = createNamesrvController(args);
@@ -74,20 +74,20 @@ public class NamesrvStartup {
     public static NamesrvController createNamesrvController(String[] args) throws IOException, JoranException {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
         //PackageConflictDetect.detectFastjson();
-        //K2 检测命令行参数。简略
+        //todo K2 检测命令行参数。简略
         Options options = ServerUtil.buildCommandlineOptions(new Options());
         commandLine = ServerUtil.parseCmdLine("mqnamesrv", args, buildCommandlineOptions(options), new PosixParser());
         if (null == commandLine) {
             System.exit(-1);
             return null;
         }
-        //K1 NameServer最核心的三个配置
+        //todo K1 NameServer最核心的三个配置
         //NameSrvConfig 包含NameServer自身运行的参数
         //NettyServerConfig 包含Netty服务端的配置参数，Netty服务端口默认指定了9876。修改端口参见测试案例
         final NamesrvConfig namesrvConfig = new NamesrvConfig();
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
         nettyServerConfig.setListenPort(9876);
-        //K2 解析三个配置对象
+        //todo K2 解析三个配置对象
         if (commandLine.hasOption('c')) {
             String file = commandLine.getOptionValue('c');
             if (file != null) {

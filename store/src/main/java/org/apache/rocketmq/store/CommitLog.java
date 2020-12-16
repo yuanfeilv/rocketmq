@@ -208,7 +208,7 @@ public class CommitLog {
                     break;
                 }
             }
-            //K2 文件正常恢复的关键是更新MappedFileQueue的flushedWhere和CommittedWhere两个指针
+            //todo K2 文件正常恢复的关键是更新MappedFileQueue的flushedWhere和CommittedWhere两个指针
             processOffset += mappedFileOffset;
             this.mappedFileQueue.setFlushedWhere(processOffset);
             this.mappedFileQueue.setCommittedWhere(processOffset);
@@ -437,7 +437,7 @@ public class CommitLog {
                     break;
                 }
             }
-            //K2 非正常恢复会在更新指针的时候也重建索引
+            //todo K2 非正常恢复会在更新指针的时候也重建索引
             if (index < 0) {
                 index = 0;
                 mappedFile = mappedFiles.get(index);
@@ -776,7 +776,7 @@ public class CommitLog {
         });
 
     }
-    //K2 CommitLog写入的过程
+    //todo K2 CommitLog写入的过程
     public PutMessageResult putMessage(final MessageExtBrokerInner msg) {
         // Set the storage time
         msg.setStoreTimestamp(System.currentTimeMillis());
@@ -951,7 +951,7 @@ public class CommitLog {
         return CompletableFuture.completedFuture(PutMessageStatus.PUT_OK);
     }
 
-    //K2 处理数据刷盘
+    //todo K2 处理数据刷盘
     public void handleDiskFlush(AppendMessageResult result, PutMessageResult putMessageResult, MessageExt messageExt) {
         // Synchronization flush 同步刷盘
         if (FlushDiskType.SYNC_FLUSH == this.defaultMessageStore.getMessageStoreConfig().getFlushDiskType()) {
@@ -1422,7 +1422,7 @@ public class CommitLog {
             this.requestsWrite = this.requestsRead;
             this.requestsRead = tmp;
         }
-        //K2 最终执行同步刷盘策略的地方
+        //todo K2 最终执行同步刷盘策略的地方
         private void doCommit() {
             synchronized (this.requestsRead) {
                 if (!this.requestsRead.isEmpty()) {
@@ -1525,7 +1525,7 @@ public class CommitLog {
         public ByteBuffer getMsgStoreItemMemory() {
             return msgStoreItemMemory;
         }
-        //K2 实际写入CommitLog的方法。
+        //todo K2 实际写入CommitLog的方法。
         public AppendMessageResult doAppend(final long fileFromOffset, final ByteBuffer byteBuffer, final int maxBlank,
             final MessageExtBrokerInner msgInner) {
             // STORETIMESTAMP + STOREHOSTADDRESS + OFFSET <br>

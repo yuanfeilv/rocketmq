@@ -60,7 +60,7 @@ public class BrokerStartup {
 
     public static BrokerController start(BrokerController controller) {
         try {
-            //K1 Controller启动
+            //todo K1 Controller启动
             controller.start();
 
             String tip = "The broker[" + controller.getBrokerConfig().getBrokerName() + ", "
@@ -86,7 +86,7 @@ public class BrokerStartup {
             controller.shutdown();
         }
     }
-    //K1 创建Broker核心配置
+    //todo K1 创建Broker核心配置
     public static BrokerController createBrokerController(String[] args) {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
 
@@ -106,7 +106,7 @@ public class BrokerStartup {
             if (null == commandLine) {
                 System.exit(-1);
             }
-            //K1 Broker的核心配置信息
+            //todo K1 Broker的核心配置信息
 
             final BrokerConfig brokerConfig = new BrokerConfig();
             final NettyServerConfig nettyServerConfig = new NettyServerConfig();
@@ -116,7 +116,7 @@ public class BrokerStartup {
                 String.valueOf(TlsSystemConfig.tlsMode == TlsMode.ENFORCING))));
             //Netty服务端的监听端口10911
             nettyServerConfig.setListenPort(10911);
-            //K2 这个明显是Broker用来存储消息的一些配置信息。
+            //todo K2 这个明显是Broker用来存储消息的一些配置信息。
             final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
             //如果是SLAVE，会设置一个参数。这参数干嘛的，可以去官网查查。
             if (BrokerRole.SLAVE == messageStoreConfig.getBrokerRole()) {
@@ -180,7 +180,7 @@ public class BrokerStartup {
                 default:
                     break;
             }
-            //K2 这里可以看到，判断是否基于Dledger技术来管理主从同步和CommitLog的条件就是brokerId设置为-1
+            //todo K2 这里可以看到，判断是否基于Dledger技术来管理主从同步和CommitLog的条件就是brokerId设置为-1
             if (messageStoreConfig.isEnableDLegerCommitLog()) {
                 brokerConfig.setBrokerId(-1);
             }

@@ -78,7 +78,7 @@ import org.apache.rocketmq.common.sysflag.PullSysFlag;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.exception.RemotingException;
-//K2 推模式消息消费者实现类
+//todo K2 推模式消息消费者实现类
 public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     /**
      * Delay some time when exception occur
@@ -108,7 +108,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     private boolean consumeOrderly = false;
     private MessageListener messageListenerInner;
     private OffsetStore offsetStore;
-    //K2 客户端进行实际消息消费的service组件。
+    //todo K2 客户端进行实际消息消费的service组件。
     private ConsumeMessageService consumeMessageService;
     private long queueFlowControlTimes = 0;
     private long queueMaxSpanFlowControlTimes = 0;
@@ -210,7 +210,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     public void setOffsetStore(OffsetStore offsetStore) {
         this.offsetStore = offsetStore;
     }
-    //K2 拉取消息的核心流程
+    //todo K2 拉取消息的核心流程
     public void pullMessage(final PullRequest pullRequest) {
         //获取要处理的消息：ProcessQueue
         final ProcessQueue processQueue = pullRequest.getProcessQueue();
@@ -301,7 +301,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
         }
 
         final long beginTimestamp = System.currentTimeMillis();
-        //K2 客户端 默认的拉取的回调函数，在拉取到消息后会进入这个方法处理。
+        //todo K2 客户端 默认的拉取的回调函数，在拉取到消息后会进入这个方法处理。
         PullCallback pullCallback = new PullCallback() {
             @Override
             public void onSuccess(PullResult pullResult) {
@@ -327,7 +327,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                                     pullRequest.getMessageQueue().getTopic(), pullResult.getMsgFoundList().size());
 
                                 boolean dispatchToConsume = processQueue.putMessage(pullResult.getMsgFoundList());
-                                //K2 消费者消息服务处理消费到的消息
+                                //todo K2 消费者消息服务处理消费到的消息
                                 DefaultMQPushConsumerImpl.this.consumeMessageService.submitConsumeRequest(
                                     pullResult.getMsgFoundList(),
                                     processQueue,
@@ -434,7 +434,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
             classFilter // class filter
         );
         try {
-            //K2 客户端实际与服务器交互，拉取消息的地方
+            //todo K2 客户端实际与服务器交互，拉取消息的地方
             this.pullAPIWrapper.pullKernelImpl(
                 pullRequest.getMessageQueue(),
                 subExpression,
@@ -590,7 +590,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 if (this.defaultMQPushConsumer.getMessageModel() == MessageModel.CLUSTERING) {
                     this.defaultMQPushConsumer.changeInstanceNameToPID();
                 }
-                //K2 客户端创建工厂，这个是核心对象
+                //todo K2 客户端创建工厂，这个是核心对象
                 this.mQClientFactory = MQClientManager.getInstance().getOrCreateMQClientInstance(this.defaultMQPushConsumer, this.rpcHook);
 
                 this.rebalanceImpl.setConsumerGroup(this.defaultMQPushConsumer.getConsumerGroup());

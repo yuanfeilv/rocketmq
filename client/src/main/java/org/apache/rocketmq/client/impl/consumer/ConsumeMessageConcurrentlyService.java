@@ -197,7 +197,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
 
         return result;
     }
-    //K2 消费者处理并发消息
+    //todo K2 消费者处理并发消息
     @Override
     public void submitConsumeRequest(
         final List<MessageExt> msgs,

@@ -430,7 +430,7 @@ public class RouteInfoManager {
 
         return null;
     }
-    //K2 扫描不活动的Broker
+    //todo K2 扫描不活动的Broker
     public void scanNotActiveBroker() {
         //扫描的就是这个BrokerLiveTable,路由信息表。还有一个Brokernames
         Iterator<Entry<String, BrokerLiveInfo>> it = this.brokerLiveTable.entrySet().iterator();

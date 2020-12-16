@@ -139,7 +139,7 @@ public class PullAPIWrapper {
             }
         }
     }
-    //K2 消费者拉取消息
+    //todo K2 消费者拉取消息
     public PullResult pullKernelImpl(
         final MessageQueue mq,
         final String subExpression,

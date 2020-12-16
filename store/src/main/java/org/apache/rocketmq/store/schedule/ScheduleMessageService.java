@@ -109,7 +109,7 @@ public class ScheduleMessageService extends ConfigManager {
 
         return storeTimestamp + 1000;
     }
-    //K2 延迟消息服务的启动方法
+    //todo K2 延迟消息服务的启动方法
     public void start() {
         if (started.compareAndSet(false, true)) {
             this.timer = new Timer("ScheduleMessageTimerThread", true);
@@ -221,7 +221,7 @@ public class ScheduleMessageService extends ConfigManager {
 
         return true;
     }
-    //K2 延迟消息: 处理任务
+    //todo K2 延迟消息: 处理任务
     class DeliverDelayedMessageTimerTask extends TimerTask {
         private final int delayLevel;
         private final long offset;
@@ -259,7 +259,7 @@ public class ScheduleMessageService extends ConfigManager {
 
             return result;
         }
-        //K2 延迟消息：处理任务的具体逻辑。
+        //todo K2 延迟消息：处理任务的具体逻辑。
         public void executeOnTimeup() {
             //拿到延迟级别对应的队列
             ConsumeQueue cq =

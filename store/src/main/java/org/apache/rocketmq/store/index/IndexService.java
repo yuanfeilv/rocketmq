@@ -219,7 +219,7 @@ public class IndexService {
                 case MessageSysFlag.TRANSACTION_ROLLBACK_TYPE:
                     return;
             }
-            //K2 indexFile索引文件构建的核心步骤
+            //todo K2 indexFile索引文件构建的核心步骤
             if (req.getUniqKey() != null) {
                 indexFile = putKey(indexFile, msg, buildKey(topic, req.getUniqKey()));
                 if (indexFile == null) {

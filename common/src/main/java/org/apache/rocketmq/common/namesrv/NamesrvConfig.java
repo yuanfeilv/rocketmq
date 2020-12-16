@@ -25,7 +25,7 @@ import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
-//K2 NameServer核心配置类。但是这里面并没有太多的核心配置。核心配置在配置文件中。
+//todo K2 NameServer核心配置类。但是这里面并没有太多的核心配置。核心配置在配置文件中。
 public class NamesrvConfig {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
     //RocketMQ的主目录

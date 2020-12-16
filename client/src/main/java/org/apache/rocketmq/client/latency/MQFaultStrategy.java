@@ -59,7 +59,7 @@ public class MQFaultStrategy {
         //这个sendLatencyFaultEnable默认是关闭的，Broker故障延迟机制，表示一种发送消息失败后一定时间内不在往同一个Queue重复发送的机制
         if (this.sendLatencyFaultEnable) {
             try {
-                //K2 这里可以看到，Producer选择MessageQueue的方法就是自增，然后取模。并且只有这一种方法。
+                //todo K2 这里可以看到，Producer选择MessageQueue的方法就是自增，然后取模。并且只有这一种方法。
                 int index = tpInfo.getSendWhichQueue().getAndIncrement();
                 for (int i = 0; i < tpInfo.getMessageQueueList().size(); i++) {
                     int pos = Math.abs(index++) % tpInfo.getMessageQueueList().size();

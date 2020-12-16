@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 package org.apache.rocketmq.remoting.netty;
-//K1 Netty服务的核心配置信息
+//todo K1 Netty服务的核心配置信息
 public class NettyServerConfig implements Cloneable {
     //端口号，默认是8888，但是启动时被默认覆盖成了9876
     private int listenPort = 8888;

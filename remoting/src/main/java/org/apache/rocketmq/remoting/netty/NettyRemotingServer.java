@@ -194,7 +194,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
             });
 
         prepareSharableHandlers();
-        //K1 Netty服务启动的核心流程
+        //todo K1 Netty服务启动的核心流程
         //主要核心是基于Netty的API去配置和启动一个Netty网络服务器。
         ServerBootstrap childHandler =
             this.serverBootstrap.group(this.eventLoopGroupBoss, this.eventLoopGroupSelector)

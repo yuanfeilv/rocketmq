@@ -127,7 +127,7 @@ public class BrokerOuterAPI {
         //NameSrv的地址列表
         List<String> nameServerAddressList = this.remotingClient.getNameServerAddressList();
         if (nameServerAddressList != null && nameServerAddressList.size() > 0) {
-            //K2 构建Broker注册的网络请求。可以看看有哪些关键参数。
+            //todo K2 构建Broker注册的网络请求。可以看看有哪些关键参数。
             final RegisterBrokerRequestHeader requestHeader = new RegisterBrokerRequestHeader();
             requestHeader.setBrokerAddr(brokerAddr);
             requestHeader.setBrokerId(brokerId);
@@ -149,7 +149,7 @@ public class BrokerOuterAPI {
                     @Override
                     public void run() {
                         try {
-                            //K2 Broker真正执行注册的方法
+                            //todo K2 Broker真正执行注册的方法
                             RegisterBrokerResult result = registerBroker(namesrvAddr,oneway, timeoutMills,requestHeader,body);
                             //注册完了，在本地保存下来。
                             if (result != null) {

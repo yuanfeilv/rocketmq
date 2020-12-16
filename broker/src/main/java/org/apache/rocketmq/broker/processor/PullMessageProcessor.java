@@ -410,7 +410,7 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
 
                     if (brokerAllowSuspend && hasSuspendFlag) {
                         long pollingTimeMills = suspendTimeoutMillisLong;
-                        //K2 消息长轮询
+                        //todo K2 消息长轮询
                         if (!this.brokerController.getBrokerConfig().isLongPollingEnable()) {
                             pollingTimeMills = this.brokerController.getBrokerConfig().getShortPollingTimeMills();
                         }
