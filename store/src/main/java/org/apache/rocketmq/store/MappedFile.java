@@ -217,9 +217,11 @@ public class MappedFile extends ReferenceResource {
         assert messageExt != null;
         assert cb != null;
 
+        // 获取要写入的位置初始值为0
         int currentPos = this.wrotePosition.get();
-
+        // 只有当磁盘文件比最后写入大时，才append
         if (currentPos < this.fileSize) {
+            // NIO byteBuffer
             ByteBuffer byteBuffer = writeBuffer != null ? writeBuffer.slice() : this.mappedByteBuffer.slice();
             byteBuffer.position(currentPos);
             AppendMessageResult result;
@@ -230,6 +232,7 @@ public class MappedFile extends ReferenceResource {
             } else {
                 return new AppendMessageResult(AppendMessageStatus.UNKNOWN_ERROR);
             }
+            // cas 操作修改position
             this.wrotePosition.addAndGet(result.getWroteBytes());
             this.storeTimestamp = result.getStoreTimestamp();
             return result;
@@ -294,6 +297,7 @@ public class MappedFile extends ReferenceResource {
                     //We only append data to fileChannel or mappedByteBuffer, never both.
                     //这个force方法就是强迫把你写入内存的数据刷入到磁盘文件里去。
                     //todo K2 到这里就是同步刷盘成功了。
+                    // 调用force 进行刷盘
                     if (writeBuffer != null || this.fileChannel.position() != 0) {
                         this.fileChannel.force(false);
                     } else {

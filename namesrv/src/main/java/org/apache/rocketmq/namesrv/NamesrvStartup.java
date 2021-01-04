@@ -58,6 +58,7 @@ public class NamesrvStartup {
         //类似于Web应用里的Controller，这个组件就是用来接收网络请求的。那NameServer到底要接收哪些网络请求？
         try {
             NamesrvController controller = createNamesrvController(args);
+            // 启动controller
             start(controller);
             String tip = "The Name Server boot success. serializeType=" + RemotingCommand.getSerializeTypeConfigInThisServer();
             log.info(tip);
@@ -67,10 +68,16 @@ public class NamesrvStartup {
             e.printStackTrace();
             System.exit(-1);
         }
-
         return null;
     }
 
+    /**
+     * 创建NameServerController 主要是一些配置覆盖
+     * @param args
+     * @return
+     * @throws IOException
+     * @throws JoranException
+     */
     public static NamesrvController createNamesrvController(String[] args) throws IOException, JoranException {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
         //PackageConflictDetect.detectFastjson();
@@ -86,14 +93,16 @@ public class NamesrvStartup {
         //NettyServerConfig 包含Netty服务端的配置参数，Netty服务端口默认指定了9876。修改端口参见测试案例
         final NamesrvConfig namesrvConfig = new NamesrvConfig();
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
+        // 直接代码里写死9876 端口。。
         nettyServerConfig.setListenPort(9876);
-        //todo K2 解析三个配置对象
+        //todo K2 解析三个配置对象,即如果传入了-c 参数，则需要读取文件获取信息
         if (commandLine.hasOption('c')) {
             String file = commandLine.getOptionValue('c');
             if (file != null) {
                 InputStream in = new BufferedInputStream(new FileInputStream(file));
                 properties = new Properties();
                 properties.load(in);
+                // 读取nameServer 这些配置
                 MixAll.properties2Object(properties, namesrvConfig);
                 MixAll.properties2Object(properties, nettyServerConfig);
 
@@ -104,6 +113,9 @@ public class NamesrvStartup {
             }
         }
 
+        /**
+         *
+         */
         if (commandLine.hasOption('p')) {
             InternalLogger console = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_CONSOLE_NAME);
             MixAll.printObjectProperties(console, namesrvConfig);
@@ -128,7 +140,7 @@ public class NamesrvStartup {
 
         MixAll.printObjectProperties(log, namesrvConfig);
         MixAll.printObjectProperties(log, nettyServerConfig);
-
+        // 新建 NamesrvController 对象
         final NamesrvController controller = new NamesrvController(namesrvConfig, nettyServerConfig);
 
         // remember all configs to prevent discard
@@ -137,6 +149,12 @@ public class NamesrvStartup {
         return controller;
     }
 
+    /**
+     * 启动nameServer 的逻辑
+     * @param controller
+     * @return
+     * @throws Exception
+     */
     public static NamesrvController start(final NamesrvController controller) throws Exception {
 
         if (null == controller) {
@@ -149,6 +167,7 @@ public class NamesrvStartup {
             System.exit(-3);
         }
 
+        // 添加程序关闭时的broker 钩子
         Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(log, new Callable<Void>() {
             @Override
             public Void call() throws Exception {

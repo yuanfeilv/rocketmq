@@ -62,7 +62,9 @@ public class ProducerImpl extends AbstractOMSProducer implements Producer {
     }
 
     private SendResult send(final Message message, long timeout) {
+        // 校验message
         checkMessageType(message);
+        // 格式化message 对象
         org.apache.rocketmq.common.message.Message rmqMessage = msgConvert((BytesMessage) message);
         try {
             org.apache.rocketmq.client.producer.SendResult rmqResult = this.rocketmqProducer.send(rmqMessage, timeout);

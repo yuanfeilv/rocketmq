@@ -244,8 +244,11 @@ public class BrokerController {
     public boolean initialize() throws CloneNotSupportedException {
         //加载磁盘上的配置信息。这些配置信息就用到了MessageStoreConfig
         boolean result = this.topicConfigManager.load();
+        // 消费者位移值
         result = result && this.consumerOffsetManager.load();
+        // 消费者组管理器
         result = result && this.subscriptionGroupManager.load();
+        // 消费者过滤器管理器
         result = result && this.consumerFilterManager.load();
         //配置加载成功后干了些什么？
         if (result) {
@@ -973,7 +976,7 @@ public class BrokerController {
             doRegisterBrokerAll(checkOrderConfig, oneway, topicConfigWrapper);
         }
     }
-    //todo K2 roker注册最核心的部分
+    //todo K2 broker注册最核心的部分
     private void doRegisterBrokerAll(boolean checkOrderConfig, boolean oneway,
         TopicConfigSerializeWrapper topicConfigWrapper) {
         //为什么返回的是个List？这就是因为Broker是向所有的NameServer进行注册。

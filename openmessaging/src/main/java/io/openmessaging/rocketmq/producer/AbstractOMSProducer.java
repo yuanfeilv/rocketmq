@@ -72,6 +72,9 @@ abstract class AbstractOMSProducer implements ServiceLifecycle, MessageFactory {
         properties.put(OMSBuiltinKeys.PRODUCER_ID, producerId);
     }
 
+    /**
+     * 启动普通生产者
+     */
     @Override
     public synchronized void startup() {
         if (!started) {

@@ -55,6 +55,7 @@ public class BrokerStartup {
     public static InternalLogger log;
 
     public static void main(String[] args) {
+        // 创建brokerController 后启动
         start(createBrokerController(args));
     }
 
@@ -149,11 +150,12 @@ public class BrokerStartup {
                 System.out.printf("Please set the %s variable in your environment to match the location of the RocketMQ installation", MixAll.ROCKETMQ_HOME_ENV);
                 System.exit(-2);
             }
-
+            // 检查nameserver
             String namesrvAddr = brokerConfig.getNamesrvAddr();
             if (null != namesrvAddr) {
                 try {
                     String[] addrArray = namesrvAddr.split(";");
+                    // 这里只是校验传入的参数时候合法，不做具体处理
                     for (String addr : addrArray) {
                         RemotingUtil.string2SocketAddress(addr);
                     }
@@ -164,7 +166,7 @@ public class BrokerStartup {
                     System.exit(-3);
                 }
             }
-            //判断集群角色。通过BrokerId判断主从
+            //判断集群角色。通过brokerRole判断主从,配置文件钟配置
             switch (messageStoreConfig.getBrokerRole()) {
                 case ASYNC_MASTER:
                 case SYNC_MASTER:
@@ -184,7 +186,7 @@ public class BrokerStartup {
             if (messageStoreConfig.isEnableDLegerCommitLog()) {
                 brokerConfig.setBrokerId(-1);
             }
-
+            // 设置ha 端口
             messageStoreConfig.setHaListenPort(nettyServerConfig.getListenPort() + 1);
             //日志相关的代码。可以稍后再关注
            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();

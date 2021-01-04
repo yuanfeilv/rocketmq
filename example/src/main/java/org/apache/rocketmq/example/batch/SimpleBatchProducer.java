@@ -35,7 +35,6 @@ public class SimpleBatchProducer {
         messages.add(new Message(topic, "Tag", "OrderID001", "Hello world 0".getBytes()));
         messages.add(new Message(topic, "Tag", "OrderID002", "Hello world 1".getBytes()));
         messages.add(new Message(topic, "Tag", "OrderID003", "Hello world 2".getBytes()));
-
         producer.send(messages);
     }
 }

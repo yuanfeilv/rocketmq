@@ -154,9 +154,11 @@ public abstract class NettyRemotingAbstract {
         final RemotingCommand cmd = msg;
         if (cmd != null) {
             switch (cmd.getType()) {
+                // todo 处理生产者发送的请求
                 case REQUEST_COMMAND:
                     processRequestCommand(ctx, cmd);
                     break;
+                    // 事务回查或者消费者接收消息
                 case RESPONSE_COMMAND:
                     processResponseCommand(ctx, cmd);
                     break;
@@ -190,6 +192,8 @@ public abstract class NettyRemotingAbstract {
      * @param cmd request command.
      */
     public void processRequestCommand(final ChannelHandlerContext ctx, final RemotingCommand cmd) {
+        //
+        System.out.println(new String(cmd.getBody()));
         final Pair<NettyRequestProcessor, ExecutorService> matched = this.processorTable.get(cmd.getCode());
         final Pair<NettyRequestProcessor, ExecutorService> pair = null == matched ? this.defaultRequestProcessor : matched;
         final int opaque = cmd.getOpaque();
@@ -200,6 +204,9 @@ public abstract class NettyRemotingAbstract {
                 public void run() {
                     try {
                         doBeforeRpcHooks(RemotingHelper.parseChannelRemoteAddr(ctx.channel()), cmd);
+                        /**
+                         * 利用回调函数向客户端写入发送结果
+                         */
                         final RemotingResponseCallback callback = new RemotingResponseCallback() {
                             @Override
                             public void callback(RemotingCommand response) {
@@ -221,6 +228,7 @@ public abstract class NettyRemotingAbstract {
                             }
                         };
                         if (pair.getObject1() instanceof AsyncNettyRequestProcessor) {
+                            // 获取netty 处理器
                             AsyncNettyRequestProcessor processor = (AsyncNettyRequestProcessor)pair.getObject1();
                             processor.asyncProcessRequest(ctx, cmd, callback);
                         } else {
@@ -251,7 +259,9 @@ public abstract class NettyRemotingAbstract {
             }
 
             try {
+                // 构建requestTask,实际上调用的还是上面构建的runable的run 方法
                 final RequestTask requestTask = new RequestTask(run, ctx.channel(), cmd);
+                // 提交运行
                 pair.getObject2().submit(requestTask);
             } catch (RejectedExecutionException e) {
                 if ((System.currentTimeMillis() % 10000) == 0) {
@@ -414,7 +424,7 @@ public abstract class NettyRemotingAbstract {
             this.responseTable.put(opaque, responseFuture);
             final SocketAddress addr = channel.remoteAddress();
             //todo K2 Broker发送心跳请求的核心。
-            //基于Netty开发的核心就是基于channel把请求写出去
+            //基于Netty开发的核心就是基于channel把请求写出去，为啥是nameServer ？
             channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture f) throws Exception {

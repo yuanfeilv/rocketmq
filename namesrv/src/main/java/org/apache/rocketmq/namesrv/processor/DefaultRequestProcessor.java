@@ -77,9 +77,12 @@ public class DefaultRequestProcessor extends AsyncNettyRequestProcessor implemen
                 RemotingHelper.parseChannelRemoteAddr(ctx.channel()),
                 request);
         }
+        System.out.println("receive request" + request.getCode());
+
 
         //todo K2 这里是NameServer处理请求的核心代码。根据请求类型有不同的处理过程
         switch (request.getCode()) {
+
             case RequestCode.PUT_KV_CONFIG:
                 return this.putKVConfig(ctx, request);
             case RequestCode.GET_KV_CONFIG:

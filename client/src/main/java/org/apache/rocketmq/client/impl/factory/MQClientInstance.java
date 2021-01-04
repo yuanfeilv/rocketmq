@@ -222,11 +222,12 @@ public class MQClientInstance {
 
         return mqList;
     }
-    //todo K1 消费者核心启动过程。难得有点注释了。
+    //todo K1 生产者和消费者的线程启动类
     public void start() throws MQClientException {
 
         synchronized (this) {
             switch (this.serviceState) {
+                // 第一次进来都是CREATE_JUST 状态
                 case CREATE_JUST:
                     this.serviceState = ServiceState.START_FAILED;
                     // If not specified,looking address from name server
@@ -234,6 +235,7 @@ public class MQClientInstance {
                         this.mQClientAPIImpl.fetchNameServerAddr();
                     }
                     // Start request-response channel
+                    // 开启netty 线程，连接服务
                     this.mQClientAPIImpl.start();
                     // Start various schedule tasks
                     this.startScheduledTask();
@@ -243,6 +245,7 @@ public class MQClientInstance {
                     //todo K2 客户端负载均衡
                     this.rebalanceService.start();
                     // Start push service
+                    // 启动生产者程序
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
                     log.info("the client factory [{}] start OK", this.clientId);
                     this.serviceState = ServiceState.RUNNING;
@@ -930,6 +933,12 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * 使用mapper 保存producer
+     * @param group
+     * @param producer
+     * @return
+     */
     public boolean registerProducer(final String group, final DefaultMQProducerImpl producer) {
         if (null == group || null == producer) {
             return false;

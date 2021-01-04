@@ -160,7 +160,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                     return new Thread(r, "NettyClientWorkerThread_" + this.threadIndex.incrementAndGet());
                 }
             });
-
+        // 注册handler
         Bootstrap handler = this.bootstrap.group(this.eventLoopGroupWorker).channel(NioSocketChannel.class)
             .option(ChannelOption.TCP_NODELAY, true)
             .option(ChannelOption.SO_KEEPALIVE, false)
@@ -189,6 +189,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 }
             });
 
+        // 定期扫描netty 的返回
         this.timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {

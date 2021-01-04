@@ -223,6 +223,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
+     * 消息分发器的启动逻辑
      * @throws Exception
      */
     public void start() throws Exception {
@@ -288,6 +289,7 @@ public class DefaultMessageStore implements MessageStore {
             this.haService.start();
             this.handleScheduleMessageService(messageStoreConfig.getBrokerRole());
         }
+
 
         this.flushConsumeQueueService.start();
         this.commitLog.start();
@@ -420,6 +422,11 @@ public class DefaultMessageStore implements MessageStore {
         return PutMessageStatus.PUT_OK;
     }
 
+    /**
+     * 消息异步处理
+     * @param msg MessageInstance to store
+     * @return
+     */
     @Override
     public CompletableFuture<PutMessageResult> asyncPutMessage(MessageExtBrokerInner msg) {
         PutMessageStatus checkStoreStatus = this.checkStoreStatus();
@@ -427,14 +434,17 @@ public class DefaultMessageStore implements MessageStore {
             return CompletableFuture.completedFuture(new PutMessageResult(checkStoreStatus, null));
         }
 
+        // 校验消息格式
         PutMessageStatus msgCheckStatus = this.checkMessage(msg);
         if (msgCheckStatus == PutMessageStatus.MESSAGE_ILLEGAL) {
             return CompletableFuture.completedFuture(new PutMessageResult(msgCheckStatus, null));
         }
 
         long beginTime = this.getSystemClock().now();
+        // todo broker 消息处理 调用commitlog 的put ，commit 是性能提高的主要原因
         CompletableFuture<PutMessageResult> putResultFuture = this.commitLog.asyncPutMessage(msg);
 
+        // 回调函数处理消息统计，暂时不关注
         putResultFuture.thenAccept((result) -> {
             long elapsedTime = this.getSystemClock().now() - beginTime;
             if (elapsedTime > 500) {
@@ -1510,6 +1520,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     public void putMessagePositionInfo(DispatchRequest dispatchRequest) {
+        // 获取到consumerqueue
         ConsumeQueue cq = this.findConsumeQueue(dispatchRequest.getTopic(), dispatchRequest.getQueueId());
         cq.putMessagePositionInfoWrapper(dispatchRequest);
     }
@@ -1885,6 +1896,9 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 分发mappedFile 里的文件到指定的topic的目录下
+     */
     class ReputMessageService extends ServiceThread {
 
         private volatile long reputFromOffset = 0;
@@ -1923,11 +1937,13 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         private void doReput() {
+            // 当放入的速度小于 commitlog 的最小值时，重置offset
             if (this.reputFromOffset < DefaultMessageStore.this.commitLog.getMinOffset()) {
                 log.warn("The reputFromOffset={} is smaller than minPyOffset={}, this usually indicate that the dispatch behind too much and the commitlog has expired.",
                     this.reputFromOffset, DefaultMessageStore.this.commitLog.getMinOffset());
                 this.reputFromOffset = DefaultMessageStore.this.commitLog.getMinOffset();
             }
+
             for (boolean doNext = true; this.isCommitLogAvailable() && doNext; ) {
 
                 if (DefaultMessageStore.this.getMessageStoreConfig().isDuplicationEnable()
@@ -1950,7 +1966,7 @@ public class DefaultMessageStore implements MessageStore {
                                 if (size > 0) {
                                     //分发CommitLog写入消息
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
-                                    //todo K2 长轮询： 如果有消息到了主节点，并且开启了长轮询。
+                                    //todo K2 长轮询： 如果当前是主节点，并且开启了长轮询。
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
                                         && DefaultMessageStore.this.brokerConfig.isLongPollingEnable()) {
                                         //唤醒NotifyMessageArrivingListener的arriving方法，进行一次请求线程的检查
@@ -2006,7 +2022,9 @@ public class DefaultMessageStore implements MessageStore {
 
             while (!this.isStopped()) {
                 try {
+                    // 休眠1s 秒
                     Thread.sleep(1);
+                    //
                     this.doReput();
                 } catch (Exception e) {
                     DefaultMessageStore.log.warn(this.getServiceName() + " service has exception. ", e);

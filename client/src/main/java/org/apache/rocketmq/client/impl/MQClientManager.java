@@ -25,8 +25,14 @@ import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.remoting.RPCHook;
 
+/**
+ * Client 管理器
+ */
 public class MQClientManager {
     private final static InternalLogger log = ClientLogger.getLog();
+    /**
+     * 单例状态
+     */
     private static MQClientManager instance = new MQClientManager();
     private AtomicInteger factoryIndexGenerator = new AtomicInteger();
     private ConcurrentMap<String/* clientId */, MQClientInstance> factoryTable =

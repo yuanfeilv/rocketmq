@@ -27,6 +27,7 @@ public class Message implements Serializable {
 
     private String topic;
     private int flag;
+    // 用于sql 查询
     private Map<String, String> properties;
     private byte[] body;
     private String transactionId;
