@@ -134,6 +134,7 @@ public class NamesrvStartup {
         JoranConfigurator configurator = new JoranConfigurator();
         configurator.setContext(lc);
         lc.reset();
+        System.out.println(namesrvConfig.getRocketmqHome());
         configurator.doConfigure(namesrvConfig.getRocketmqHome() + "/conf/logback_namesrv.xml");
         //最后会把全部配置信息打印一下。
         log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
@@ -142,6 +143,7 @@ public class NamesrvStartup {
         MixAll.printObjectProperties(log, nettyServerConfig);
         // 新建 NamesrvController 对象
         final NamesrvController controller = new NamesrvController(namesrvConfig, nettyServerConfig);
+        log.info("222222");
 
         // remember all configs to prevent discard
         controller.getConfiguration().registerConfig(properties);

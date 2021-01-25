@@ -56,7 +56,7 @@ public class Consumer {
         /*
          * Specify where to start in case the specified consumer group is a brand new one.
          */
-        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
 
         /*
          * Subscribe one more more topics to consume.
@@ -72,7 +72,7 @@ public class Consumer {
             public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs,
                 ConsumeConcurrentlyContext context) {
                 System.out.printf("%s Receive New Messages: %s %n", Thread.currentThread().getName(), msgs);
-                return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+                return ConsumeConcurrentlyStatus.RECONSUME_LATER;
             }
         });
 

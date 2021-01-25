@@ -465,7 +465,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         if (cw != null && cw.isOK()) {
             return cw.getChannel();
         }
-        //这一堆也是从缓存中获取channel
+        //这一堆也是从缓存中获取channel，这里永奥了双重检查
         if (this.lockChannelTables.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
             try {
                 boolean createNewConnection;

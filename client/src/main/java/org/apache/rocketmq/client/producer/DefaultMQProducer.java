@@ -245,6 +245,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
         this.producerGroup = producerGroup;
         defaultMQProducerImpl = new DefaultMQProducerImpl(this, rpcHook);
         //if client open the message trace feature
+        // 是否开启消息轨迹
         if (enableMsgTrace) {
             try {
                 AsyncTraceDispatcher dispatcher = new AsyncTraceDispatcher(producerGroup, TraceDispatcher.Type.PRODUCE, customizedTraceTopic, rpcHook);

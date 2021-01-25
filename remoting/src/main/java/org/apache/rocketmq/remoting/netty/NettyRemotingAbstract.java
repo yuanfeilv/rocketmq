@@ -193,7 +193,6 @@ public abstract class NettyRemotingAbstract {
      */
     public void processRequestCommand(final ChannelHandlerContext ctx, final RemotingCommand cmd) {
         //
-        System.out.println(new String(cmd.getBody()));
         final Pair<NettyRequestProcessor, ExecutorService> matched = this.processorTable.get(cmd.getCode());
         final Pair<NettyRequestProcessor, ExecutorService> pair = null == matched ? this.defaultRequestProcessor : matched;
         final int opaque = cmd.getOpaque();
@@ -423,8 +422,11 @@ public abstract class NettyRemotingAbstract {
             final ResponseFuture responseFuture = new ResponseFuture(channel, opaque, timeoutMillis, null, null);
             this.responseTable.put(opaque, responseFuture);
             final SocketAddress addr = channel.remoteAddress();
-            //todo K2 Broker发送心跳请求的核心。
-            //基于Netty开发的核心就是基于channel把请求写出去，为啥是nameServer ？
+            log.info("线程");
+            //todo 基于Netty开发的核心就是基于channel把请求写出去,然后通过回调将消息移除出队列，后台有一个定时任务扫描队列，将超时的移除
+            // 这里的netty 需要翻代码确认下,输入输出流怎么确认就是这个的返回，这个要等到服务段代码分析过后才能确认
+
+            //todo smart 这里的countDownLatch 异步转同步可以学习下
             channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture f) throws Exception {
@@ -441,7 +443,7 @@ public abstract class NettyRemotingAbstract {
                     log.warn("send a request command to channel <" + addr + "> failed.");
                 }
             });
-            //核心就是等待请求的返回。
+            //核心就是调用countDownLatch 的wait 方法等待返回，或者定时任务清除或者超时
             RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMillis);
             if (null == responseCommand) {
                 if (responseFuture.isSendRequestOK()) {

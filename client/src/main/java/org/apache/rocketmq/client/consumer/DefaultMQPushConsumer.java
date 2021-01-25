@@ -230,6 +230,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
 
     /**
      * Batch consumption size
+     * // 推模式下的并发阈值
      */
     private int consumeMessageBatchMaxSize = 1;
 
@@ -349,7 +350,9 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
         AllocateMessageQueueStrategy allocateMessageQueueStrategy) {
         this.consumerGroup = consumerGroup;
         this.namespace = namespace;
+        // 配置消息消费的策略
         this.allocateMessageQueueStrategy = allocateMessageQueueStrategy;
+        // 创建实现类
         defaultMQPushConsumerImpl = new DefaultMQPushConsumerImpl(this, rpcHook);
     }
 
@@ -709,7 +712,9 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     //todo K2 启动过程
     @Override
     public void start() throws MQClientException {
+        // 设置消费组
         setConsumerGroup(NamespaceUtil.wrapNamespace(this.getNamespace(), this.consumerGroup));
+        // 调用实现类的启动逻辑
         this.defaultMQPushConsumerImpl.start();
         if (null != traceDispatcher) {
             try {

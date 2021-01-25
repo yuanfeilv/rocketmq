@@ -739,6 +739,18 @@ public class MQClientAPIImpl {
         return sendResult;
     }
 
+    /**
+     * 根据配置进行消息拉取
+     * @param addr
+     * @param requestHeader
+     * @param timeoutMillis
+     * @param communicationMode
+     * @param pullCallback
+     * @return
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
     public PullResult pullMessage(
         final String addr,
         final PullMessageRequestHeader requestHeader,

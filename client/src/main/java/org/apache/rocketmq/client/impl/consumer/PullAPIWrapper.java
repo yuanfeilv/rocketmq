@@ -158,6 +158,7 @@ public class PullAPIWrapper {
         FindBrokerResult findBrokerResult =
             this.mQClientFactory.findBrokerAddressInSubscribe(mq.getBrokerName(),
                 this.recalculatePullFromWhichNode(mq), false);
+        // 如果从缓存中湖区不到，则从nameServer 中更新路由信息后获取
         if (null == findBrokerResult) {
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(mq.getTopic());
             findBrokerResult =
@@ -193,6 +194,7 @@ public class PullAPIWrapper {
             requestHeader.setSubVersion(subVersion);
             requestHeader.setExpressionType(expressionType);
 
+            //
             String brokerAddr = findBrokerResult.getBrokerAddr();
             if (PullSysFlag.hasClassFilterFlag(sysFlagInner)) {
                 brokerAddr = computPullFromWhichFilterServer(mq.getTopic(), brokerAddr);

@@ -237,9 +237,10 @@ public class MQClientInstance {
                     // Start request-response channel
                     // 开启netty 线程，连接服务
                     this.mQClientAPIImpl.start();
-                    // Start various schedule tasks
+                    // Start various schedule tasks// 开启一些定时任务
                     this.startScheduledTask();
                     // Start pull service
+                    // 启动消费者拉取服务
                     this.pullMessageService.start();
                     // Start rebalance service
                     //todo K2 客户端负载均衡
@@ -470,10 +471,15 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * 发送心跳的方法,对于频繁使用的加ReentrantLock锁
+     */
     public void sendHeartbeatToAllBrokerWithLock() {
         if (this.lockHeartbeat.tryLock()) {
             try {
+                // 向所有broker 发送心跳
                 this.sendHeartbeatToAllBroker();
+
                 this.uploadFilterClassSource();
             } catch (final Exception e) {
                 log.error("sendHeartbeatToAllBroker exception", e);
@@ -541,6 +547,7 @@ public class MQClientInstance {
             log.warn("sending heartbeat, but no consumer and no producer");
             return;
         }
+
 
         if (!this.brokerAddrTable.isEmpty()) {
             long times = this.sendHeartbeatTimesTotal.getAndIncrement();
@@ -643,7 +650,7 @@ public class MQClientInstance {
                                 this.brokerAddrTable.put(bd.getBrokerName(), bd.getBrokerAddrs());
                             }
 
-                            // Update Pub info
+                            // Update Pub info 更新每个生产者的信息
                             {
                                 TopicPublishInfo publishInfo = topicRouteData2TopicPublishInfo(topic, topicRouteData);
                                 publishInfo.setHaveTopicRouterInfo(true);
@@ -658,6 +665,7 @@ public class MQClientInstance {
                             }
 
                             // Update sub info
+                            // 更新每个消费者的信息
                             {
                                 Set<MessageQueue> subscribeInfo = topicRouteData2TopicSubscribeInfo(topic, topicRouteData);
                                 Iterator<Entry<String, MQConsumerInner>> it = this.consumerTable.entrySet().iterator();

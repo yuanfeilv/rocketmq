@@ -50,6 +50,7 @@ public class MQClientManager {
         return getOrCreateMQClientInstance(clientConfig, null);
     }
 
+    // todo smart 这里使用ConcurrentHashMap putIfAbsent 来保证并发，这里锁的粒度很小，对于资源不是很紧张的可以学习下,而且可以保证单例
     public MQClientInstance getOrCreateMQClientInstance(final ClientConfig clientConfig, RPCHook rpcHook) {
         String clientId = clientConfig.buildMQClientId();
         MQClientInstance instance = this.factoryTable.get(clientId);

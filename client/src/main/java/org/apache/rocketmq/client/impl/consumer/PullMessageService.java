@@ -77,6 +77,7 @@ public class PullMessageService extends ServiceThread {
     }
 
     private void pullMessage(final PullRequest pullRequest) {
+        // 根据消费者组获取mqConsumerInner, 这里是因为可能一个实例中注册了多个消费者用于消费不同的消息或者有不同的队列
         final MQConsumerInner consumer = this.mQClientFactory.selectConsumer(pullRequest.getConsumerGroup());
         if (consumer != null) {
             DefaultMQPushConsumerImpl impl = (DefaultMQPushConsumerImpl) consumer;
@@ -91,9 +92,10 @@ public class PullMessageService extends ServiceThread {
     public void run() {
         log.info(this.getServiceName() + " service started");
 
+        // 判断当前是否停止
         while (!this.isStopped()) {
             try {
-                //拉取消息的请求队列
+                //拉取消息的请求队列 todo 这个 queue 从哪里构造request?
                 PullRequest pullRequest = this.pullRequestQueue.take();
                 //处理请求
                 this.pullMessage(pullRequest);

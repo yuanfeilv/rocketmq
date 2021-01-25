@@ -1,0 +1,3 @@
+nameSrv 主要作用是维护broker 信息，即提供broker 注册与客户端获取broker 列表的功能
+启动过程包括创建了一个NamesrvController 和启动了一个定时任务，移除没有定期发送心跳的broker
+向netty 注册一个DefaultRequestProcessor 用于处理客户端的请求

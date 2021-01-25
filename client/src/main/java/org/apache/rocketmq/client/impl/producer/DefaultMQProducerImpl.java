@@ -704,17 +704,25 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         throw new MQClientException("No route info of this topic: " + msg.getTopic() + FAQUrl.suggestTodo(FAQUrl.NO_TOPIC_ROUTE_INFO),
             null).setResponseCode(ClientErrorCode.NOT_FOUND_TOPIC_EXCEPTION);
     }
-    //找路由表的过程都是先从本地缓存找，本地缓存没有，就去NameServer上申请。
+
+    /**
+     * 找路由表的过程都是先从本地缓存找，本地缓存没有，就去NameServer上申请。
+     * @param topic
+     * @return
+     */
     private TopicPublishInfo tryToFindTopicPublishInfo(final String topic) {
+        // 尝试从缓存中获取
         TopicPublishInfo topicPublishInfo = this.topicPublishInfoTable.get(topic);
         if (null == topicPublishInfo || !topicPublishInfo.ok()) {
             this.topicPublishInfoTable.putIfAbsent(topic, new TopicPublishInfo());
-            //Producer向NameServer获取更新Topic的路由信息。
+            //Producer向NameServer获取更新Topic的路由信息,这里有加锁，锁的粒度都是到nameServer,这里没有用双重锁的机制保证只用一次，估计是因为
+            // 其本身支持幂等性
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(topic);
             //还是从本地缓存中寻找Topic路由信息。
             topicPublishInfo = this.topicPublishInfoTable.get(topic);
         }
 
+        // 判断是否
         if (topicPublishInfo.isHaveTopicRouterInfo() || topicPublishInfo.ok()) {
             return topicPublishInfo;
         } else {
@@ -1381,6 +1389,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
     public SendResult send(Message msg,
         long timeout) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+        // 同步发送消息
         return this.sendDefaultImpl(msg, CommunicationMode.SYNC, null, timeout);
     }
 
