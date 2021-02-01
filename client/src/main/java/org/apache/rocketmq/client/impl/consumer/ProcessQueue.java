@@ -45,6 +45,7 @@ public class ProcessQueue {
     private final static long PULL_MAX_IDLE_TIME = Long.parseLong(System.getProperty("rocketmq.client.pull.pullMaxIdleTime", "120000"));
     private final InternalLogger log = ClientLogger.getLog();
     private final ReadWriteLock lockTreeMap = new ReentrantReadWriteLock();
+    // 使用treemap 方便返回最小的 位移值
     private final TreeMap<Long, MessageExt> msgTreeMap = new TreeMap<Long, MessageExt>();
     private final AtomicLong msgCount = new AtomicLong();
     private final AtomicLong msgSize = new AtomicLong();
@@ -182,6 +183,11 @@ public class ProcessQueue {
         return 0;
     }
 
+    /**
+     * 从本地的 消费队列中移除消息
+     * @param msgs
+     * @return
+     */
     public long removeMessage(final List<MessageExt> msgs) {
         long result = -1;
         final long now = System.currentTimeMillis();
@@ -200,7 +206,7 @@ public class ProcessQueue {
                         }
                     }
                     msgCount.addAndGet(removedCnt);
-
+                    // 如果最后树非空，那么 返回第一个，这样做能保证消息至少被消费一次，但是会重复消费
                     if (!msgTreeMap.isEmpty()) {
                         result = msgTreeMap.firstKey();
                     }

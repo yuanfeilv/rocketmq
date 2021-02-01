@@ -56,8 +56,10 @@ public class RebalancePushImpl extends RebalanceImpl {
         SubscriptionData subscriptionData = this.subscriptionInner.get(topic);
         long newVersion = System.currentTimeMillis();
         log.info("{} Rebalance changed, also update version: {}, {}", topic, subscriptionData.getSubVersion(), newVersion);
+        // 设置版本号
         subscriptionData.setSubVersion(newVersion);
 
+        // 设置阈值
         int currentQueueCount = this.processQueueTable.size();
         if (currentQueueCount != 0) {
             int pullThresholdForTopic = this.defaultMQPushConsumerImpl.getDefaultMQPushConsumer().getPullThresholdForTopic();
@@ -77,14 +79,23 @@ public class RebalancePushImpl extends RebalanceImpl {
             }
         }
 
-        // notify broker
+        // notify broker 通过
         this.getmQClientFactory().sendHeartbeatToAllBrokerWithLock();
     }
 
+    /**
+     *  重平衡后的移除队列执行逻辑
+     * @param mq
+     * @param pq
+     * @return
+     */
     @Override
     public boolean removeUnnecessaryMessageQueue(MessageQueue mq, ProcessQueue pq) {
         this.defaultMQPushConsumerImpl.getOffsetStore().persist(mq);
         this.defaultMQPushConsumerImpl.getOffsetStore().removeOffset(mq);
+        // 只有顺序消息才需要，因为顺序消息要保证消息的顺序性，所以需要获取锁后，才返回状态？
+        // todo question ? 这里真的能保证消费顺序吗？我觉得只有消费端不行，因为 最后一个客户端启动后，会直接进行消息拉取，这个时候拉取到的是下一次的
+        // 但是 另一个副本上跑着上一次的结果，这里并不能完全保证这个问题，所以当消息是顺序消费时服务端要加锁
         if (this.defaultMQPushConsumerImpl.isConsumeOrderly()
             && MessageModel.CLUSTERING.equals(this.defaultMQPushConsumerImpl.messageModel())) {
             try {

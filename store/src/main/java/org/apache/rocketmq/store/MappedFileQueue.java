@@ -108,6 +108,7 @@ public class MappedFileQueue {
     public void truncateDirtyFiles(long offset) {
         List<MappedFile> willRemoveFiles = new ArrayList<MappedFile>();
 
+        //
         for (MappedFile file : this.mappedFiles) {
             long fileTailOffset = file.getFileFromOffset() + this.mappedFileSize;
             if (fileTailOffset > offset) {
@@ -148,6 +149,7 @@ public class MappedFileQueue {
         }
     }
 
+    // 建立file 于mappedFiled 的文件映射关系
     public boolean load() {
         File dir = new File(this.storePath);
         File[] files = dir.listFiles();
@@ -196,6 +198,7 @@ public class MappedFileQueue {
     }
 
     public MappedFile getLastMappedFile(final long startOffset, boolean needCreate) {
+        // createOffset 是 这个文件的初始位移值
         long createOffset = -1;
         MappedFile mappedFileLast = getLastMappedFile();
 

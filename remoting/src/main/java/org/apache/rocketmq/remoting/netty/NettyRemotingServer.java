@@ -213,6 +213,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                     public void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline()
                             .addLast(defaultEventExecutorGroup, HANDSHAKE_HANDLER_NAME, handshakeHandler)
+                                // 添加不同的handler
                             .addLast(defaultEventExecutorGroup,
                                 encoder,
                                 new NettyDecoder(),
@@ -416,7 +417,8 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
     }
 
     /**
-     * todo broker process message
+     * todo broker process message broker 接收到消息的处理逻辑
+     *
      */
     @ChannelHandler.Sharable
     class NettyServerHandler extends SimpleChannelInboundHandler<RemotingCommand> {

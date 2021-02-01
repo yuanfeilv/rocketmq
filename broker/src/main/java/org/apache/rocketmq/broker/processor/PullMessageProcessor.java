@@ -88,7 +88,7 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
     public boolean rejectRequest() {
         return false;
     }
-    //Broker处理客户端请求
+    //todo broker pullMessage
     private RemotingCommand processRequest(final Channel channel, RemotingCommand request, boolean brokerAllowSuspend)
         throws RemotingCommandException {
         RemotingCommand response = RemotingCommand.createResponseCommand(PullMessageResponseHeader.class);

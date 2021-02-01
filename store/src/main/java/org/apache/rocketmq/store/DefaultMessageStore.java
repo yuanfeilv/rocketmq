@@ -194,18 +194,21 @@ public class DefaultMessageStore implements MessageStore {
                 result = result && this.scheduleMessageService.load();
             }
 
-            // load Commit Log
+            // load Commit Log 加载commit log文件 主要是对文件建立内存映射
             result = result && this.commitLog.load();
 
             // load Consume Queue
             result = result && this.loadConsumeQueue();
 
             if (result) {
+                // 存储点检查
                 this.storeCheckpoint =
                     new StoreCheckpoint(StorePathConfigHelper.getStoreCheckpoint(this.messageStoreConfig.getStorePathRootDir()));
 
+                // 加载index 文件
                 this.indexService.load(lastExitOK);
 
+                //文件恢复检测，对文件进行修复
                 this.recover(lastExitOK);
 
                 log.info("load over, and the max phy offset = {}", this.getMaxPhyOffset());
@@ -441,7 +444,7 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         long beginTime = this.getSystemClock().now();
-        // todo broker 消息处理 调用commitlog 的put ，commit 是性能提高的主要原因
+        // todo broker 消息处理 调用commitlog 的put ，commit 是性能提高的主要原因，这里直接写入byteBuffer 后返回
         CompletableFuture<PutMessageResult> putResultFuture = this.commitLog.asyncPutMessage(msg);
 
         // 回调函数处理消息统计，暂时不关注
@@ -568,6 +571,7 @@ public class DefaultMessageStore implements MessageStore {
     public CommitLog getCommitLog() {
         return commitLog;
     }
+
 
     public GetMessageResult getMessage(final String group, final String topic, final int queueId, final long offset,
         final int maxMsgNums,
@@ -1423,6 +1427,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     private void recover(final boolean lastExitOK) {
+        // 恢复队列
         long maxPhyOffsetOfConsumeQueue = this.recoverConsumeQueue();
 
         if (lastExitOK) {// 正常文件恢复
@@ -1512,6 +1517,7 @@ public class DefaultMessageStore implements MessageStore {
     public RunningFlags getRunningFlags() {
         return runningFlags;
     }
+
     //todo K2 将commitLog写入的事件转发到ComsumeQueue和IndexFile
     public void doDispatch(DispatchRequest req) {
         for (CommitLogDispatcher dispatcher : this.dispatcherList) {
@@ -1582,6 +1588,7 @@ public class DefaultMessageStore implements MessageStore {
             switch (tranType) {
                 case MessageSysFlag.TRANSACTION_NOT_TYPE:
                 case MessageSysFlag.TRANSACTION_COMMIT_TYPE:
+                    // 主要处理逻辑
                     DefaultMessageStore.this.putMessagePositionInfo(request);
                     break;
                 case MessageSysFlag.TRANSACTION_PREPARED_TYPE:
@@ -1897,6 +1904,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
+     * todo commitlog 向consumerqueue 与 index 中分发的逻辑
      * 分发mappedFile 里的文件到指定的topic的目录下
      */
     class ReputMessageService extends ServiceThread {
@@ -1937,7 +1945,7 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         private void doReput() {
-            // 当放入的速度小于 commitlog 的最小值时，重置offset
+            // 当放入的进度小于 commitlog 的最小值时，重置offset
             if (this.reputFromOffset < DefaultMessageStore.this.commitLog.getMinOffset()) {
                 log.warn("The reputFromOffset={} is smaller than minPyOffset={}, this usually indicate that the dispatch behind too much and the commitlog has expired.",
                     this.reputFromOffset, DefaultMessageStore.this.commitLog.getMinOffset());
@@ -1951,9 +1959,12 @@ public class DefaultMessageStore implements MessageStore {
                     break;
                 }
 
+                // 从commit log 中获取消息
                 SelectMappedBufferResult result = DefaultMessageStore.this.commitLog.getData(reputFromOffset);
+                // 只有非空才会处理
                 if (result != null) {
                     try {
+                        // 赋值
                         this.reputFromOffset = result.getStartOffset();
 
                         for (int readSize = 0; readSize < result.getSize() && doNext; ) {
@@ -1966,6 +1977,7 @@ public class DefaultMessageStore implements MessageStore {
                                 if (size > 0) {
                                     //分发CommitLog写入消息
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
+
                                     //todo K2 长轮询： 如果当前是主节点，并且开启了长轮询。
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
                                         && DefaultMessageStore.this.brokerConfig.isLongPollingEnable()) {

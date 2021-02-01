@@ -39,6 +39,7 @@ public class TransactionListenerImpl implements TransactionListener {
 
         String tags = msg.getTags();
         if(StringUtils.contains(tags,"TagA")){
+            System.out.println(Thread.currentThread().getName());
             return LocalTransactionState.COMMIT_MESSAGE;
         }else if(StringUtils.contains(tags,"TagB")){
             return LocalTransactionState.ROLLBACK_MESSAGE;

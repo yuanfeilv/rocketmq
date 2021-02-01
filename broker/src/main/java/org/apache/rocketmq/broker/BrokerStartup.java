@@ -36,6 +36,7 @@ import org.apache.rocketmq.remoting.netty.NettySystemConfig;
 import org.apache.rocketmq.remoting.netty.TlsSystemConfig;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.apache.rocketmq.srvutil.ServerUtil;
+import org.apache.rocketmq.store.MappedFile;
 import org.apache.rocketmq.store.config.BrokerRole;
 import org.apache.rocketmq.store.config.MessageStoreConfig;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,7 @@ public class BrokerStartup {
     public static void main(String[] args) {
         // 创建brokerController 后启动
         start(createBrokerController(args));
+        System.out.println("主线程结束");
     }
 
     public static BrokerController start(BrokerController controller) {
@@ -116,7 +118,12 @@ public class BrokerStartup {
             nettyClientConfig.setUseTLS(Boolean.parseBoolean(System.getProperty(TLS_ENABLE,
                 String.valueOf(TlsSystemConfig.tlsMode == TlsMode.ENFORCING))));
             //Netty服务端的监听端口10911
-            nettyServerConfig.setListenPort(10911);
+            if (commandLine.hasOption('p')){
+                nettyServerConfig.setListenPort(20091);
+            }else {
+                nettyServerConfig.setListenPort(10091);
+            }
+
             //todo K2 这个明显是Broker用来存储消息的一些配置信息。
             final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
             //如果是SLAVE，会设置一个参数。这参数干嘛的，可以去官网查查。
@@ -211,6 +218,7 @@ public class BrokerStartup {
                 MixAll.printObjectProperties(console, messageStoreConfig, true);
                 System.exit(0);
             }
+
             //又是参数打印
             log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
             MixAll.printObjectProperties(log, brokerConfig);

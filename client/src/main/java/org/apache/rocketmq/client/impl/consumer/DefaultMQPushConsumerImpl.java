@@ -288,7 +288,8 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 return;
             }
         } else {
-            // todo 查看为何被锁才会执行，目前猜测是负责处理实际逻辑的线程与负责处理的争抢锁，或者重平衡的时候有影响
+            // todo order consumer queue 这里的逻辑是重平衡回去获取锁，如果没有获取到顺序消息的锁，则延迟一段时间再去获取
+
             if (processQueue.isLocked()) {
                 if (!pullRequest.isLockedFirst()) {
                     final long offset = this.rebalanceImpl.computePullFromWhere(pullRequest.getMessageQueue());
@@ -304,7 +305,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                     pullRequest.setNextOffset(offset);
                 }
             } else {
-                // 延迟一端时间执行
+                // 延迟一段时间执行
                 this.executePullRequestLater(pullRequest, pullTimeDelayMillsWhenException);
                 log.info("pull message later because not locked in broker, {}", pullRequest);
                 return;
@@ -698,7 +699,8 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
         this.mQClientFactory.checkClientInBroker();
         // 定期发送心跳
         this.mQClientFactory.sendHeartbeatToAllBrokerWithLock();
-        // 立即触发消费者重平衡
+        // 立即触发消费者重平衡，这里启动成功后使用countDownLatch 来 唤醒重平衡的逻辑
+        // todo smart 使用countDownLatch 来做到异步等待
         this.mQClientFactory.rebalanceImmediately();
     }
 

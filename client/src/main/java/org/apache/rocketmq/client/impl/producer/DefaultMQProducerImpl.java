@@ -323,6 +323,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
             @Override
             public void run() {
+                // 获取事务检查者
                 TransactionCheckListener transactionCheckListener = DefaultMQProducerImpl.this.checkListener();
                 TransactionListener transactionListener = getCheckListener();
                 if (transactionCheckListener != null || transactionListener != null) {
@@ -351,6 +352,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 }
             }
 
+            // 向服务端发送消息
             private void processTransactionState(
                 final LocalTransactionState localTransactionState,
                 final String producerGroup,
@@ -1251,12 +1253,13 @@ public class DefaultMQProducerImpl implements MQProducerInner {
     public TransactionSendResult sendMessageInTransaction(final Message msg,
         final LocalTransactionExecuter localTransactionExecuter, final Object arg)
         throws MQClientException {
+        // 获取listerner
         TransactionListener transactionListener = getCheckListener();
         if (null == localTransactionExecuter && null == transactionListener) {
             throw new MQClientException("tranExecutor is null", null);
         }
 
-        // ignore DelayTimeLevel parameter
+        // ignore DelayTimeLevel parameter,事务消息不支持delay
         if (msg.getDelayTimeLevel() != 0) {
             MessageAccessor.clearProperty(msg, MessageConst.PROPERTY_DELAY_TIME_LEVEL);
         }
@@ -1264,6 +1267,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
         Validators.checkMessage(msg, this.defaultMQProducer);
 
         SendResult sendResult = null;
+        // 设置事务的属性
         MessageAccessor.putProperty(msg, MessageConst.PROPERTY_TRANSACTION_PREPARED, "true");
         MessageAccessor.putProperty(msg, MessageConst.PROPERTY_PRODUCER_GROUP, this.defaultMQProducer.getProducerGroup());
         try {
@@ -1284,6 +1288,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                     if (null != transactionId && !"".equals(transactionId)) {
                         msg.setTransactionId(transactionId);
                     }
+                    // 如果线程池存在，那么
                     if (null != localTransactionExecuter) {
                         localTransactionState = localTransactionExecuter.executeLocalTransactionBranch(msg, arg);
                     } else if (transactionListener != null) {

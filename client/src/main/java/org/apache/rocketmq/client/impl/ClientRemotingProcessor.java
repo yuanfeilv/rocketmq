@@ -68,6 +68,7 @@ public class ClientRemotingProcessor extends AsyncNettyRequestProcessor implemen
     public RemotingCommand processRequest(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         switch (request.getCode()) {
+            // 如果请求是回查事务的请求
             case RequestCode.CHECK_TRANSACTION_STATE:
                 return this.checkTransactionState(ctx, request);
             case RequestCode.NOTIFY_CONSUMER_IDS_CHANGED:
@@ -96,6 +97,13 @@ public class ClientRemotingProcessor extends AsyncNettyRequestProcessor implemen
         return false;
     }
 
+    /**
+     * 回查事务的处理逻辑
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public RemotingCommand checkTransactionState(ChannelHandlerContext ctx,
         RemotingCommand request) throws RemotingCommandException {
         final CheckTransactionStateRequestHeader requestHeader =
@@ -107,7 +115,9 @@ public class ClientRemotingProcessor extends AsyncNettyRequestProcessor implemen
                 messageExt.setTopic(NamespaceUtil
                     .withoutNamespace(messageExt.getTopic(), this.mqClientFactory.getClientConfig().getNamespace()));
             }
+            // 获取事务id
             String transactionId = messageExt.getProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX);
+            // 重新设置事务id?
             if (null != transactionId && !"".equals(transactionId)) {
                 messageExt.setTransactionId(transactionId);
             }
@@ -116,6 +126,7 @@ public class ClientRemotingProcessor extends AsyncNettyRequestProcessor implemen
                 MQProducerInner producer = this.mqClientFactory.selectProducer(group);
                 if (producer != null) {
                     final String addr = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
+                    // 调用事务重查逻辑
                     producer.checkTransactionState(addr, messageExt, requestHeader);
                 } else {
                     log.debug("checkTransactionState, pick producer by group[{}] failed", group);

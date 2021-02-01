@@ -582,7 +582,7 @@ public class CommitLog {
         final int tranType = MessageSysFlag.getTransactionValue(msg.getSysFlag());
         if (tranType == MessageSysFlag.TRANSACTION_NOT_TYPE
                 || tranType == MessageSysFlag.TRANSACTION_COMMIT_TYPE) {
-            // Delay Delivery
+            // Delay Delivery 如果是延迟消息这里需要改写topic， 先将topic 放入到 SCHEDULE_TOPIC_XXXX 的队列中
             if (msg.getDelayTimeLevel() > 0) {
                 // 延迟投递，覆盖最大投递时间
                 if (msg.getDelayTimeLevel() > this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel()) {
@@ -608,7 +608,7 @@ public class CommitLog {
         // mappedFile 是零拷贝的类，这里是关键实现
         MappedFile mappedFile = this.mappedFileQueue.getLastMappedFile();
 
-        // 对同一file 的操作要加锁，这里对mappedFile 进行加锁，并发影响?
+        // todo think 对同一file 的操作要加锁，这里对mappedFile 进行加锁，并发影响? 这是与kafka 不同的点，这里锁粒度与磁盘顺序写是否会影响到并发
         putMessageLock.lock(); //spin or ReentrantLock ,depending on store config
         try {
             long beginLockTimestamp = this.defaultMessageStore.getSystemClock().now();
@@ -679,7 +679,12 @@ public class CommitLog {
         storeStatsService.getSinglePutMessageTopicTimesTotal(msg.getTopic()).incrementAndGet();
         storeStatsService.getSinglePutMessageTopicSizeTotal(topic).addAndGet(result.getWroteBytes());
 
+        // 刷盘请求
         CompletableFuture<PutMessageStatus> flushResultFuture = submitFlushRequest(result, putMessageResult, msg);
+        // 复制请求
+        /**
+         * 这里是jdk 8 的新特性 thenCombine 会等待两个结果返回后调用
+         */
         CompletableFuture<PutMessageStatus> replicaResultFuture = submitReplicaRequest(result, putMessageResult, msg);
         return flushResultFuture.thenCombine(replicaResultFuture, (flushStatus, replicaStatus) -> {
             if (flushStatus != PutMessageStatus.PUT_OK) {
@@ -780,6 +785,7 @@ public class CommitLog {
         storeStatsService.getSinglePutMessageTopicTimesTotal(messageExtBatch.getTopic()).addAndGet(result.getMsgNum());
         storeStatsService.getSinglePutMessageTopicSizeTotal(messageExtBatch.getTopic()).addAndGet(result.getWroteBytes());
 
+        // 刷盘与主从
         CompletableFuture<PutMessageStatus> flushOKFuture = submitFlushRequest(result, putMessageResult, messageExtBatch);
         CompletableFuture<PutMessageStatus> replicaOKFuture = submitReplicaRequest(result, putMessageResult, messageExtBatch);
         return flushOKFuture.thenCombine(replicaOKFuture, (flushStatus, replicaStatus) -> {
@@ -794,6 +800,7 @@ public class CommitLog {
         });
 
     }
+
     //todo K2 CommitLog写入的过程
     public PutMessageResult putMessage(final MessageExtBrokerInner msg) {
         // Set the storage time
@@ -923,6 +930,13 @@ public class CommitLog {
         return putMessageResult;
     }
 
+    /**
+     *  todo 提交刷盘任务
+     * @param result
+     * @param putMessageResult
+     * @param messageExt
+     * @return
+     */
     public CompletableFuture<PutMessageStatus> submitFlushRequest(AppendMessageResult result, PutMessageResult putMessageResult,
                                                                   MessageExt messageExt) {
         // Synchronization flush
@@ -1318,9 +1332,12 @@ public class CommitLog {
             CommitLog.log.info(this.getServiceName() + " service started");
 
             while (!this.isStopped()) {
+
                 boolean flushCommitLogTimed = CommitLog.this.defaultMessageStore.getMessageStoreConfig().isFlushCommitLogTimed();
 
+                // 获取延迟
                 int interval = CommitLog.this.defaultMessageStore.getMessageStoreConfig().getFlushIntervalCommitLog();
+                // 获取刷盘
                 int flushPhysicQueueLeastPages = CommitLog.this.defaultMessageStore.getMessageStoreConfig().getFlushCommitLogLeastPages();
 
                 int flushPhysicQueueThoroughInterval =
@@ -1337,6 +1354,7 @@ public class CommitLog {
                 }
 
                 try {
+
                     if (flushCommitLogTimed) {
                         Thread.sleep(interval);
                     } else {
@@ -1470,6 +1488,7 @@ public class CommitLog {
                 } else {
                     // Because of individual messages is set to not sync flush, it
                     // will come to this process
+                    // 同步刷盘
                     CommitLog.this.mappedFileQueue.flush(0);
                 }
             }
@@ -1696,7 +1715,7 @@ public class CommitLog {
 
             final long beginTimeMills = CommitLog.this.defaultMessageStore.now();
             // Write messages to the queue buffer
-            // 向buffer 中写入数据，这里并灭有
+            // 向buffer 中写入数据，这里并没有写入磁盘
             byteBuffer.put(this.msgStoreItemMemory.array(), 0, msgLen);
 
             AppendMessageResult result = new AppendMessageResult(AppendMessageStatus.PUT_OK, wroteOffset, msgLen, msgId,

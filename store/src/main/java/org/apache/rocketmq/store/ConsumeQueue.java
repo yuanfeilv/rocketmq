@@ -86,13 +86,16 @@ public class ConsumeQueue {
     }
 
     public void recover() {
+        // 获取所有consumer queue 中的文件
         final List<MappedFile> mappedFiles = this.mappedFileQueue.getMappedFiles();
         if (!mappedFiles.isEmpty()) {
 
+            // 只是从倒数第3个文件开始，这个是经验值
             int index = mappedFiles.size() - 3;
             if (index < 0)
                 index = 0;
 
+            // 默认600000
             int mappedFileSizeLogics = this.mappedFileSize;
             MappedFile mappedFile = mappedFiles.get(index);
             ByteBuffer byteBuffer = mappedFile.sliceByteBuffer();
@@ -100,10 +103,15 @@ public class ConsumeQueue {
             long mappedFileOffset = 0;
             long maxExtAddr = 1;
             while (true) {
+                // 这里CQ_STORE_UNIT_SIZE是20 由于是 定长，所以要跳过CQ_STORE_UNIT_SIZE
                 for (int i = 0; i < mappedFileSizeLogics; i += CQ_STORE_UNIT_SIZE) {
+                    // 获取offset
                     long offset = byteBuffer.getLong();
+                    // 获取size
                     int size = byteBuffer.getInt();
+                    // 获取tag 的hascode
                     long tagsCode = byteBuffer.getLong();
+
 
                     if (offset >= 0 && size > 0) {
                         mappedFileOffset = i + CQ_STORE_UNIT_SIZE;
@@ -112,20 +120,25 @@ public class ConsumeQueue {
                             maxExtAddr = tagsCode;
                         }
                     } else {
+                        // 当offset 于size 不大于0 时说明到达最后一个 ,此时退出
                         log.info("recover current consume queue file over,  " + mappedFile.getFileName() + " "
                             + offset + " " + size + " " + tagsCode);
                         break;
                     }
                 }
 
+                // 当 移动到最后一位时
                 if (mappedFileOffset == mappedFileSizeLogics) {
+//                    遍历下一个文件
                     index++;
+                    // 如果下一个文件不存在，此时退出
                     if (index >= mappedFiles.size()) {
 
                         log.info("recover last consume queue file over, last mapped file "
                             + mappedFile.getFileName());
                         break;
                     } else {
+                        //
                         mappedFile = mappedFiles.get(index);
                         byteBuffer = mappedFile.sliceByteBuffer();
                         processOffset = mappedFile.getFileFromOffset();
@@ -139,9 +152,11 @@ public class ConsumeQueue {
                 }
             }
 
+            // 设置comminted 于 flushOffset
             processOffset += mappedFileOffset;
             this.mappedFileQueue.setFlushedWhere(processOffset);
             this.mappedFileQueue.setCommittedWhere(processOffset);
+            // 截断文件,排除非法的文件
             this.mappedFileQueue.truncateDirtyFiles(processOffset);
 
             if (isExtReadEnable()) {
@@ -382,6 +397,7 @@ public class ConsumeQueue {
      */
     public void putMessagePositionInfoWrapper(DispatchRequest request) {
         final int maxRetries = 30;
+        // 判断是否可写
         boolean canWrite = this.defaultMessageStore.getRunningFlags().isCQWriteable();
         for (int i = 0; i < maxRetries && canWrite; i++) {
             long tagsCode = request.getTagsCode();
@@ -437,10 +453,14 @@ public class ConsumeQueue {
 
         this.byteBufferIndex.flip();
         this.byteBufferIndex.limit(CQ_STORE_UNIT_SIZE);
+        // 设置偏移量
         this.byteBufferIndex.putLong(offset);
+        // 设置 大小
         this.byteBufferIndex.putInt(size);
+        // 设置tag 的 hashcode，这里也可以看出 tag 的过滤由于是定长所以检索会 快很多，但是如果hashcode 一样，可能消费到其他tag 的消息
         this.byteBufferIndex.putLong(tagsCode);
 
+        // 计算插入的位置
         final long expectLogicOffset = cqOffset * CQ_STORE_UNIT_SIZE;
 
         // 获取mappedFile 这里的file 是 topic 下面的
@@ -476,7 +496,9 @@ public class ConsumeQueue {
                     );
                 }
             }
+            // 记录下 物理存储的位移值
             this.maxPhysicOffset = offset + size;
+            // 调用mappedFile 的 appendMessage 方法放入数据
             return mappedFile.appendMessage(this.byteBufferIndex.array());
         }
         return false;

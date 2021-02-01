@@ -565,6 +565,9 @@ public class BrokerController {
         }
     }
 
+    /**
+     *  注册消息处理的组件
+     */
     public void registerProcessor() {
         /**
          * SendMessageProcessor

@@ -65,6 +65,13 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         super(brokerController);
     }
 
+    /**
+     * 同步转异步处理
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     @Override
     public RemotingCommand processRequest(ChannelHandlerContext ctx,
                                           RemotingCommand request) throws RemotingCommandException {
@@ -84,6 +91,13 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         asyncProcessRequest(ctx, request).thenAcceptAsync(responseCallback::callback, this.brokerController.getSendMessageExecutor());
     }
 
+    /**
+     *  真正的处理逻辑
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     public CompletableFuture<RemotingCommand> asyncProcessRequest(ChannelHandlerContext ctx,
                                                                   RemotingCommand request) throws RemotingCommandException {
         final SendMessageContext mqtraceContext;
@@ -97,6 +111,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
                 }
                 mqtraceContext = buildMsgContext(ctx, requestHeader);
                 this.executeSendMessageHookBefore(ctx, request, mqtraceContext);
+
                 if (requestHeader.isBatch()) {
                     return this.asyncSendBatchMessage(ctx, request, mqtraceContext, requestHeader);
                 } else {
@@ -260,6 +275,8 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
     private CompletableFuture<RemotingCommand> asyncSendMessage(ChannelHandlerContext ctx, RemotingCommand request,
                                                                 SendMessageContext mqtraceContext,
                                                                 SendMessageRequestHeader requestHeader) {
+
+        // 构建请求
         final RemotingCommand response = preSend(ctx, request, requestHeader);
         final SendMessageResponseHeader responseHeader = (SendMessageResponseHeader)response.readCustomHeader();
 
@@ -269,13 +286,16 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
 
         final byte[] body = request.getBody();
 
+        // 获取queue 和topic 属性
         int queueIdInt = requestHeader.getQueueId();
         TopicConfig topicConfig = this.brokerController.getTopicConfigManager().selectTopicConfig(requestHeader.getTopic());
 
+        // 如果queueId =0 那么随机选取一个
         if (queueIdInt < 0) {
             queueIdInt = randomQueueId(topicConfig.getWriteQueueNums());
         }
 
+        // 这里主要是设置内部消息的属性
         MessageExtBrokerInner msgInner = new MessageExtBrokerInner();
         msgInner.setTopic(requestHeader.getTopic());
         msgInner.setQueueId(queueIdInt);
@@ -308,7 +328,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
                                 + "] sending transaction message is forbidden");
                 return CompletableFuture.completedFuture(response);
             }
-            // 事务消息特殊处理
+            // 事务消息处理逻辑
             putMessageResult = this.brokerController.getTransactionalMessageService().asyncPrepareMessage(msgInner);
         } else {
             // todo 非事务消息调用
@@ -443,6 +463,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             }
             putMessageResult = this.brokerController.getTransactionalMessageService().prepareMessage(msgInner);
         } else {
+
             putMessageResult = this.brokerController.getMessageStore().putMessage(msgInner);
         }
 

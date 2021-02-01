@@ -103,9 +103,11 @@ public class TransactionalMessageBridge {
     }
 
     public PullResult getHalfMessage(int queueId, long offset, int nums) {
+        // 构建消费者组与消费者订阅关系
         String group = TransactionalMessageUtil.buildConsumerGroup();
         String topic = TransactionalMessageUtil.buildHalfTopic();
         SubscriptionData sub = new SubscriptionData(topic, "*");
+
         return getMessage(group, topic, queueId, offset, nums, sub);
     }
 
@@ -116,6 +118,16 @@ public class TransactionalMessageBridge {
         return getMessage(group, topic, queueId, offset, nums, sub);
     }
 
+    /**
+     * 从队列中获取消息32条
+     * @param group
+     * @param topic
+     * @param queueId
+     * @param offset
+     * @param nums
+     * @param sub
+     * @return
+     */
     private PullResult getMessage(String group, String topic, int queueId, long offset, int nums,
         SubscriptionData sub) {
         GetMessageResult getMessageResult = store.getMessage(group, topic, queueId, offset, nums, null);
@@ -126,7 +138,9 @@ public class TransactionalMessageBridge {
             switch (getMessageResult.getStatus()) {
                 case FOUND:
                     pullStatus = PullStatus.FOUND;
+                    // 假码消息
                     foundList = decodeMsgList(getMessageResult);
+                    // 增加统计信息
                     this.brokerController.getBrokerStatsManager().incGroupGetNums(group, topic,
                         getMessageResult.getMessageCount());
                     this.brokerController.getBrokerStatsManager().incGroupGetSize(group, topic,

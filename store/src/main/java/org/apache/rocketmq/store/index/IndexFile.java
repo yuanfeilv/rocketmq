@@ -30,9 +30,11 @@ import org.apache.rocketmq.store.MappedFile;
 public class IndexFile {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private static int hashSlotSize = 4;
-    private static int indexSize = 20;
+    private static int indexSize = 20;// 每条indexFile 条目占用字节数
     private static int invalidIndex = 0;
+
     private final int hashSlotNum;
+    // indexFile 中含有的条目数
     private final int indexNum;
     private final MappedFile mappedFile;
     private final FileChannel fileChannel;
@@ -92,7 +94,9 @@ public class IndexFile {
     public boolean putKey(final String key, final long phyOffset, final long storeTimestamp) {
         if (this.indexHeader.getIndexCount() < this.indexNum) {
             int keyHash = indexKeyHashMethod(key);
+            // 计算hash 槽
             int slotPos = keyHash % this.hashSlotNum;
+
             int absSlotPos = IndexHeader.INDEX_HEADER_SIZE + slotPos * hashSlotSize;
 
             FileLock fileLock = null;

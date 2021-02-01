@@ -198,7 +198,12 @@ public class IndexService {
         return topic + "#" + key;
     }
 
+    /**
+     * 构建index 的方法
+     * @param req
+     */
     public void buildIndex(DispatchRequest req) {
+        // 获取indexFile
         IndexFile indexFile = retryGetAndCreateIndexFile();
         if (indexFile != null) {
             long endPhyOffset = indexFile.getEndPhyOffset();
@@ -209,6 +214,7 @@ public class IndexService {
             if (msg.getCommitLogOffset() < endPhyOffset) {
                 return;
             }
+
 
             final int tranType = MessageSysFlag.getTransactionValue(msg.getSysFlag());
             switch (tranType) {

@@ -54,8 +54,10 @@ import org.apache.rocketmq.remoting.common.RemotingHelper;
 //顺序消息消费
 public class ConsumeMessageOrderlyService implements ConsumeMessageService {
     private static final InternalLogger log = ClientLogger.getLog();
+    // 消费者一次处理的最大时长
     private final static long MAX_TIME_CONSUME_CONTINUOUSLY =
         Long.parseLong(System.getProperty("rocketmq.client.maxTimeConsumeContinuously", "60000"));
+
     private final DefaultMQPushConsumerImpl defaultMQPushConsumerImpl;
     private final DefaultMQPushConsumer defaultMQPushConsumer;
     private final MessageListenerOrderly messageListener;
@@ -73,8 +75,10 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
 
         this.defaultMQPushConsumer = this.defaultMQPushConsumerImpl.getDefaultMQPushConsumer();
         this.consumerGroup = this.defaultMQPushConsumer.getConsumerGroup();
+        // 任务拉取队列
         this.consumeRequestQueue = new LinkedBlockingQueue<Runnable>();
 
+        // 消费者消费线程池
         this.consumeExecutor = new ThreadPoolExecutor(
             this.defaultMQPushConsumer.getConsumeThreadMin(),
             this.defaultMQPushConsumer.getConsumeThreadMax(),

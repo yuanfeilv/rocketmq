@@ -219,7 +219,7 @@ public abstract class RebalanceImpl {
             for (final Map.Entry<String, SubscriptionData> entry : subTable.entrySet()) {
                 final String topic = entry.getKey();
                 try {
-                    //todo K2 客户端负载：真正进行负载都是根据主题来进行的。
+                    //todo K2 客户端负载：真正进行负载都是根据主题来进行的，这是与kafka 的不同点之一
                     this.rebalanceByTopic(topic, isOrder);
                 } catch (Throwable e) {
                     if (!topic.startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
@@ -235,7 +235,7 @@ public abstract class RebalanceImpl {
     public ConcurrentMap<String, SubscriptionData> getSubscriptionInner() {
         return subscriptionInner;
     }
-    //todo K2 客户端负载：对Topic进行负载的过程
+    //todo consumer K2 负载：对Topic进行负载的过程
     private void rebalanceByTopic(final String topic, final boolean isOrder) {
         switch (messageModel) {
             //广播模式，不需要进行负载。每个消费者都要消费。只需要更新负载信息。
@@ -256,7 +256,7 @@ public abstract class RebalanceImpl {
                 }
                 break;
             }
-            //todo K2 客户端负载：集群模式负载方法
+            //todo consumer K2 客户端负载：集群模式负载方法
             case CLUSTERING: {
                 //订阅的主题
                 Set<MessageQueue> mqSet = this.topicSubscribeInfoTable.get(topic);
@@ -300,6 +300,7 @@ public abstract class RebalanceImpl {
                         allocateResultSet.addAll(allocateResult);
                     }
 
+                    // 更新重平衡信息
                     boolean changed = this.updateProcessQueueTableInRebalance(topic, allocateResultSet, isOrder);
                     if (changed) {
                         log.info(
@@ -335,6 +336,7 @@ public abstract class RebalanceImpl {
         final boolean isOrder) {
         boolean changed = false;
 
+        // 获取处理的对象，因为可能是其他消费者启动执行重平衡逻辑
         Iterator<Entry<MessageQueue, ProcessQueue>> it = this.processQueueTable.entrySet().iterator();
         while (it.hasNext()) {
             Entry<MessageQueue, ProcessQueue> next = it.next();
@@ -342,6 +344,7 @@ public abstract class RebalanceImpl {
             ProcessQueue pq = next.getValue();
 
             if (mq.getTopic().equals(topic)) {
+                // 如果 原来的queue 不在新分配的queue 中
                 if (!mqSet.contains(mq)) {
                     pq.setDropped(true);
                     if (this.removeUnnecessaryMessageQueue(mq, pq)) {
@@ -353,6 +356,7 @@ public abstract class RebalanceImpl {
                     switch (this.consumeType()) {
                         case CONSUME_ACTIVELY:
                             break;
+                            // 只有推模式才自己处理
                         case CONSUME_PASSIVELY:
                             pq.setDropped(true);
                             if (this.removeUnnecessaryMessageQueue(mq, pq)) {
@@ -399,6 +403,7 @@ public abstract class RebalanceImpl {
                 }
             }
         }
+
 
         this.dispatchPullRequest(pullRequestList);
 

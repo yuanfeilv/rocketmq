@@ -50,6 +50,7 @@ public class EndTransactionProcessor extends AsyncNettyRequestProcessor implemen
         this.brokerController = brokerController;
     }
 
+    // todo transaction 事务消息状态的服务端处理逻辑
     @Override
     public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request) throws
         RemotingCommandException {
@@ -74,6 +75,7 @@ public class EndTransactionProcessor extends AsyncNettyRequestProcessor implemen
                     return null;
                 }
 
+                // 事务消息提交
                 case MessageSysFlag.TRANSACTION_COMMIT_TYPE: {
                     LOGGER.warn("Check producer[{}] transaction state, the producer commit the message."
                             + "RequestHeader: {} Remark: {}",
@@ -84,6 +86,7 @@ public class EndTransactionProcessor extends AsyncNettyRequestProcessor implemen
                     break;
                 }
 
+                // 事务消息回滚
                 case MessageSysFlag.TRANSACTION_ROLLBACK_TYPE: {
                     LOGGER.warn("Check producer[{}] transaction state, the producer rollback the message."
                             + "RequestHeader: {} Remark: {}",
@@ -128,13 +131,16 @@ public class EndTransactionProcessor extends AsyncNettyRequestProcessor implemen
             if (result.getResponseCode() == ResponseCode.SUCCESS) {
                 RemotingCommand res = checkPrepareMessage(result.getPrepareMessage(), requestHeader);
                 if (res.getCode() == ResponseCode.SUCCESS) {
+                    // 这里主要是设置消息的真正属性，恢复原topic 等
                     MessageExtBrokerInner msgInner = endMessageTransaction(result.getPrepareMessage());
                     msgInner.setSysFlag(MessageSysFlag.resetTransactionValue(msgInner.getSysFlag(), requestHeader.getCommitOrRollback()));
                     msgInner.setQueueOffset(requestHeader.getTranStateTableOffset());
                     msgInner.setPreparedTransactionOffset(requestHeader.getCommitLogOffset());
                     msgInner.setStoreTimestamp(result.getPrepareMessage().getStoreTimestamp());
                     MessageAccessor.clearProperty(msgInner, MessageConst.PROPERTY_TRANSACTION_PREPARED);
+                    // 重新写入消息到commitlog
                     RemotingCommand sendResult = sendFinalMessage(msgInner);
+                    // 删除预处理消息
                     if (sendResult.getCode() == ResponseCode.SUCCESS) {
                         this.brokerController.getTransactionalMessageService().deletePrepareMessage(result.getPrepareMessage());
                     }
@@ -146,6 +152,7 @@ public class EndTransactionProcessor extends AsyncNettyRequestProcessor implemen
             result = this.brokerController.getTransactionalMessageService().rollbackMessage(requestHeader);
             if (result.getResponseCode() == ResponseCode.SUCCESS) {
                 RemotingCommand res = checkPrepareMessage(result.getPrepareMessage(), requestHeader);
+                // 姗迟预处理消息
                 if (res.getCode() == ResponseCode.SUCCESS) {
                     this.brokerController.getTransactionalMessageService().deletePrepareMessage(result.getPrepareMessage());
                 }

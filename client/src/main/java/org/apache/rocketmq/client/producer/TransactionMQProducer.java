@@ -51,8 +51,10 @@ public class TransactionMQProducer extends DefaultMQProducer {
         super(namespace, producerGroup, rpcHook);
     }
 
+    // 事务消息的启动流程
     @Override
     public void start() throws MQClientException {
+        // 这里逻辑只是对 线程池进行赋值
         this.defaultMQProducerImpl.initTransactionEnv();
         super.start();
     }

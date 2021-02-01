@@ -291,6 +291,7 @@ public class MappedFile extends ReferenceResource {
     public int flush(final int flushLeastPages) {
         if (this.isAbleToFlush(flushLeastPages)) {
             if (this.hold()) {
+                // 获取写入的值
                 int value = getReadPosition();
 
                 try {

@@ -192,7 +192,7 @@ public abstract class NettyRemotingAbstract {
      * @param cmd request command.
      */
     public void processRequestCommand(final ChannelHandlerContext ctx, final RemotingCommand cmd) {
-        //
+        // 这里从
         final Pair<NettyRequestProcessor, ExecutorService> matched = this.processorTable.get(cmd.getCode());
         final Pair<NettyRequestProcessor, ExecutorService> pair = null == matched ? this.defaultRequestProcessor : matched;
         final int opaque = cmd.getOpaque();
@@ -209,7 +209,9 @@ public abstract class NettyRemotingAbstract {
                         final RemotingResponseCallback callback = new RemotingResponseCallback() {
                             @Override
                             public void callback(RemotingCommand response) {
+                                // 执行rpc 钩子
                                 doAfterRpcHooks(RemotingHelper.parseChannelRemoteAddr(ctx.channel()), cmd, response);
+                                // 返回结果
                                 if (!cmd.isOnewayRPC()) {
                                     if (response != null) {
                                         response.setOpaque(opaque);
@@ -258,7 +260,7 @@ public abstract class NettyRemotingAbstract {
             }
 
             try {
-                // 构建requestTask,实际上调用的还是上面构建的runable的run 方法
+                // 构建requestTask,实际上调用的还是上面构建的runable的run 方法，这里就是将对应的上下文信息封装到runable 中
                 final RequestTask requestTask = new RequestTask(run, ctx.channel(), cmd);
                 // 提交运行
                 pair.getObject2().submit(requestTask);
@@ -424,7 +426,7 @@ public abstract class NettyRemotingAbstract {
             final SocketAddress addr = channel.remoteAddress();
             log.info("线程");
             //todo 基于Netty开发的核心就是基于channel把请求写出去,然后通过回调将消息移除出队列，后台有一个定时任务扫描队列，将超时的移除
-            // 这里的netty 需要翻代码确认下,输入输出流怎么确认就是这个的返回，这个要等到服务段代码分析过后才能确认
+            // 这里的netty 因为采用串行化的执行，因此返回的与发送的顺序都是一一对应的
 
             //todo smart 这里的countDownLatch 异步转同步可以学习下
             channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
